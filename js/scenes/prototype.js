@@ -82,7 +82,7 @@ export async function load(ctx) {
   dome.material = domeMat; dome.infiniteDistance = true; dome.isPickable = false;
 
   const outer = MB.CreateGround('outer', { width: 140, height: 140 }, scene);
-  outer.position.y = -0.02; outer.material = M.outer; outer.isPickable = false;
+  outer.position.y = -1.3; outer.material = M.outer; outer.isPickable = false;
   const ground = MB.CreateGround('ground', { width: 12.4, height: 12.4 }, scene);
   ground.material = M.ground; ground.receiveShadows = true;
 
@@ -330,10 +330,10 @@ export async function load(ctx) {
     });
   }
   // El raíz de glTF invierte el eje X, por eso se coloca con -x.
-  function place(res, name, x, z, sc, ry) {
+  function place(res, name, x, z, sc, ry, y = 0) {
     const src = res.meshes.find((m) => m.name === name); if (!src) return null;
     const node = new B.TransformNode('pl', scene); node.parent = res.meshes[0];
-    node.position.set(-x, 0, z); node.scaling.setAll(sc); node.rotation.y = ry || 0;
+    node.position.set(-x, y, z); node.scaling.setAll(sc); node.rotation.y = ry || 0;
     const c = src.clone(name + '_c', node); c.isVisible = true; c.isPickable = false; return c;
   }
   const treesLoad = loadModel(scene, 'trees.glb').then((res) => {
@@ -348,7 +348,7 @@ export async function load(ctx) {
     const far = isTouch
       ? [['tree.005', -11, 9, 0.55, 0.3], ['tree', 9, 8, 1.3, 1.1], ['tree', -10, -7, 1.2, 2.4]]
       : [['tree.005', -11, 9, 0.55, 0.3], ['tree.005', 13, -9, 0.5, 2.2], ['tree', 9, 8, 1.3, 1.1], ['tree', -10, -7, 1.2, 2.4], ['tree', -8, 15, 1.4, 0.6], ['tree', 15, 3, 1.1, 1.7], ['tree', 1, -13, 1.3, 2.9]];
-    far.forEach((t) => place(res, t[0], t[1], t[2], t[3], t[4]));
+    far.forEach((t) => place(res, t[0], t[1], t[2], t[3], t[4], -0.5));
   }).catch((err) => { console.error('No se pudieron cargar los árboles', err); deadTree(-4.6, -0.6); deadTree(4.7, 3.0); });
 
   const rocksLoad = loadModel(scene, 'rocks.glb').then((res) => {
@@ -361,6 +361,41 @@ export async function load(ctx) {
       obstacle([r[1] - 0.55, r[1] + 0.55, r[2] - 0.55, r[2] + 0.55]);
     });
   }).catch((err) => console.error('No se pudieron cargar las rocas', err));
+
+  /* ---------- Terreno exterior (modelo GLB) y luna ---------- */
+  // El relieve del modelo queda por debajo del suelo del cementerio y solo se ve más allá de los muros.
+  const landLoad = loadModel(scene, 'landscape.glb').then((res) => {
+    const root = res.meshes[0];
+    root.scaling.set(1.8, 1.8, -1.8);   // el raíz de glTF trae z invertida; se conserva
+    const land = res.meshes.filter((m) => m.getTotalVertices() > 0);
+    let top = -Infinity;
+    land.forEach((m) => {
+      m.isPickable = false; m.receiveShadows = true;
+      const mt = m.material;
+      if (mt) { mt.albedoColor = new B.Color3(0.1, 0.1, 0.1); mt.metallic = 0; mt.roughness = 0.95; mt.environmentIntensity = 0; mt.maxSimultaneousLights = 6; }
+    });
+    root.computeWorldMatrix(true);
+    land.forEach((m) => { m.computeWorldMatrix(true); m.refreshBoundingInfo(); top = Math.max(top, m.getBoundingInfo().boundingBox.maximumWorld.y); });
+    root.position.y -= top + 0.04;
+  }).catch((err) => console.error('No se pudo cargar el terreno', err));
+
+  const moonTex = noiseTex(256, 215, 40, (c, w, hh) => {
+    for (let i = 0; i < 14; i++) {
+      const x = Math.random() * w, y = Math.random() * hh, r = 10 + Math.random() * 28;
+      const g = c.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, 'rgba(90,90,90,.55)'); g.addColorStop(1, 'rgba(90,90,90,0)');
+      c.fillStyle = g; c.fillRect(x - r, y - r, r * 2, r * 2);
+    }
+  });
+  const moonMat = new B.StandardMaterial('moonMat', scene);
+  moonMat.disableLighting = true; moonMat.emissiveTexture = moonTex; moonMat.fogEnabled = false;
+  const moonDisc = MB.CreateSphere('moonDisc', { diameter: 15, segments: 24 }, scene);
+  moonDisc.material = moonMat; moonDisc.position.set(60, 45, 70);
+  moonDisc.infiniteDistance = true; moonDisc.isPickable = false; moonDisc.applyFog = false;
+  if (ctx.moon) {   // la luz de luna viene de donde está la luna
+    const d = new V3(-60, -45, -70).normalize();
+    ctx.moon.direction = d; ctx.moon.position = d.scale(-25);
+  }
 
   /* ---------- Diálogos ---------- */
   const talkCount = { boy: 0, digger: 0 };
@@ -432,5 +467,5 @@ export async function load(ctx) {
     if (!keyNode.isDisposed() && keyNode.isEnabled()) keyNode.rotation.y += dt * 1.4;
   };
 
-  await Promise.allSettled([boyLoad, treesLoad, rocksLoad]);
+  await Promise.allSettled([boyLoad, treesLoad, rocksLoad, landLoad]);
 }

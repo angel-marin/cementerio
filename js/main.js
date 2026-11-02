@@ -18,10 +18,11 @@ import * as act5 from './scenes/act5_lessYouSee.js';
 import * as act6 from './scenes/act6_doubts.js';
 import * as act7 from './scenes/act7_gravediggerDream.js';
 import * as epilogue from './scenes/epilogue.js';
+import * as testMechanics from './scenes/test_mechanics.js';
 
 /* ---------- Registro de escenas ---------- */
 // Para añadir un acto nuevo: crea js/scenes/<nombre>.js con { id, title, load, unload } y añádelo aquí.
-const SCENES = [prototype, prologue, act1, act2, act3, act4, act5, act6, act7, epilogue];
+const SCENES = [prototype, testMechanics, prologue, act1, act2, act3, act4, act5, act6, act7, epilogue];
 const registry = new Map(SCENES.map((s) => [s.id, s]));
 
 /* ---------- Núcleo ---------- */
@@ -65,7 +66,9 @@ async function goTo(id) {
     const base = createBaseScene(engine, mod.sceneOptions || {});
     const player = createPlayer({ camera: base.camera, input });
     const interaction = createInteraction({ scene: base.scene, player, ui });
-    ctx = { ...base, engine, canvas, input, ui, audio, state, player, interaction, game, isTouch, goTo };
+    const updaters = [];
+    const addUpdater = (fn) => { updaters.push(fn); return () => { const i = updaters.indexOf(fn); if (i >= 0) updaters.splice(i, 1); }; };
+    ctx = { ...base, engine, canvas, input, ui, audio, state, player, interaction, game, isTouch, goTo, updaters, addUpdater };
 
     input.onLook = (dx, dy) => player.look(dx, dy);
     input.onUse = () => interaction.use();
@@ -105,6 +108,7 @@ engine.runRenderLoop(() => {
   if (!ctx || loading) return;
   ctx.player.update(dt);
   ctx.interaction.update();
+  for (const fn of ctx.updaters.slice()) fn(dt);
   if (current.update) current.update(dt, ctx);
   ctx.scene.render();
 });

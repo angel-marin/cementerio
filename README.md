@@ -2,7 +2,7 @@
 
 Escape room en primera persona para navegador, hecho con Babylon.js. Una sorpresa basada en el vídeo corto "El sepulturero".
 
-Estado: **Fase 1 completada** (refactor y estructura). El prototipo original funciona como una escena más (`prototype`) y los actos 1-7 son marcadores a la espera de las siguientes fases.
+Estado: **Fase 2 completada** (mecánicas base). El prototipo original funciona como una escena más (`prototype`), hay una escena de pruebas de mecánicas (`test_mechanics`) y los actos 1-7 son marcadores a la espera de las siguientes fases.
 
 ## Cómo probarlo
 
@@ -39,9 +39,9 @@ js/core/
   state.js               actos, puzles resueltos, inventario y banderas
   ui.js                  pistas, diálogos, subtítulos, inventario, candado, pantallas
   audio.js               efectos sintéticos, música y sonido espacial (ganchos)
-js/mechanics/            linterna, hilo, seguir el sueño, fragmentos (esqueletos, Fase 2 y 4)
+js/mechanics/            flashlight.js, thread.js, followDream.js (hechas); dreamFragment.js (esqueleto, Fase 4)
 js/scenes/               una escena por acto + prototype (el cementerio original)
-assets/models/           child.glb, trees.glb, rocks.glb
+assets/models/           child.glb, trees.glb, rocks.glb, landscape.glb
 assets/audio/            música y efectos (vacío por ahora)
 ```
 
@@ -60,7 +60,9 @@ export function update(dt, ctx) { ... } // se llama cada fotograma (opcional)
 
 El gestor crea una escena de Babylon nueva para cada escena de juego y la destruye al salir, así que `unload` solo tiene que cancelar lo que no sea de Babylon (temporizadores, listeners).
 
-`ctx` contiene: `scene`, `camera`, `cast(mesh)` (sombras), `player`, `interaction`, `ui`, `audio`, `state`, `input`, `game` (`started`, `startTime`) y `goTo(id)`.
+`ctx` contiene: `scene`, `camera`, `cast(mesh)` (sombras), `player`, `interaction`, `ui`, `audio`, `state`, `input`, `game` (`started`, `startTime`), `goTo(id)` y `addUpdater(fn)`.
+
+`ctx.addUpdater((dt) => { ... })` registra una función que se ejecuta cada fotograma mientras la escena esté activa y devuelve otra función para quitarla. Las mecánicas lo usan para actualizarse solas; al cambiar de escena se descartan.
 
 ## Cómo añadir un acto nuevo
 
@@ -87,14 +89,54 @@ ctx.interaction.add(meshes, {
 - Inventario y progreso: `addItem`, `hasItem`, `setFlag`, `hasFlag`, `solvePuzzle`, `isSolved` en `core/state.js`. Pon `persist: true` en `config.js` para guardar en `localStorage`.
 - Los nombres visibles de los objetos del inventario van en `CONFIG.items`.
 
+
+## Mecánicas (js/mechanics/)
+
+Cada una se crea con `createX(ctx, opciones)`, se actualiza sola y se limpia con `dispose()`. Las puedes ver funcionando en la escena `test_mechanics` (menú `P` o `?escena=test_mechanics`).
+
+### Linterna (`flashlight.js`)
+
+```js
+const fl = createFlashlight(ctx, { startOn: true });
+fl.onToggle = (isOn) => { ... };                  // los puzles reaccionan aquí
+fl.addShadowObject(mesh, { flag: 'simbolos' });   // visible solo con la linterna apagada
+fl.setAvailable(false);                           // p. ej. hasta recoger el farol
+```
+
+Foco de luz pegado a la cámara. Tecla `F` o botón **Linterna** en móvil. Los objetos de sombra usan un material emisivo tenue y aparecen y desaparecen con un fundido; si pasas `flag`, solo se muestran cuando esa bandera está activa (`setFlag('simbolos')`). Para escenas oscuras usa `sceneOptions = { moon: false, hemiIntensity: 0.1 }`.
+
+### Hilo (`thread.js`)
+
+```js
+const t = createThread(ctx, { from: V3(x, 0.85, z), obstacles: [rect o malla], others: [otroHilo] });
+t.start();                       // el hilo empieza a seguir al jugador
+t.connect(V3(x, 0.85, z));       // lo ata en el destino
+t.retract();                     // lo recoge con calma
+t.onConnected = () => {};
+t.onBroken = (motivo) => {};     // 'propio' | 'otro' | 'obstaculo'; se recoge solo, sin penalización
+```
+
+Todo se comprueba en el plano del suelo. Un hilo que roza a otro, a sí mismo o a una zona marcada cuenta como cruzado. `obstacles` son rectángulos `[minX, maxX, minZ, maxZ]` o mallas. Para dejar un hilo ya atado como obstáculo de otro: `h.start(); h.connect(punto);` y pásalo en `others`.
+
+### Seguir el sueño (`followDream.js`)
+
+```js
+const d = createFollowDream(ctx, { path: [V3, V3, ...], speed: 1.3, maxDistance: 6 });
+d.onArrived = () => {};
+d.onWait = (esperando) => {};     // opcional: aviso al empezar y terminar la espera
+d.start(); d.reset();
+```
+
+Una esfera luminosa recorre una curva suave a velocidad constante. Si el jugador se aleja más de `maxDistance`, se detiene y parpadea hasta que vuelva (sin castigo).
+
 ## Modelos
 
-Los `.glb` se cargan con `loadModel(scene, 'fichero.glb')` desde `assets/models/`. Los modelos con esqueleto se detectan mal con el raycast (Babylon usa la malla sin deformar), así que se usa una caja invisible para interactuar (ver el niño en `scenes/prototype.js`).
+Los `.glb` se cargan con `loadModel(scene, 'fichero.glb')` desde `assets/models/`. El terreno (`landscape.glb`) y la luna del escenario original se usan en la escena `prototype`: el terreno queda justo por debajo del suelo y solo se ve más allá de los muros. Los modelos con esqueleto se detectan mal con el raycast (Babylon usa la malla sin deformar), así que se usa una caja invisible para interactuar (ver el niño en `scenes/prototype.js`).
 
 ## Hoja de ruta
 
 1. Fase 1: refactor y estructura (hecha)
-2. Fase 2: mecánicas base (linterna, hilo, seguir el sueño) con una escena de pruebas
+2. Fase 2: mecánicas base (linterna, hilo, seguir el sueño) con una escena de pruebas (hecha)
 3. Fase 3: prólogo, acto 1 y acto 2
 4. Fase 4: actos 3 y 4
 5. Fase 5: actos 5, 6 y 7 y epílogo
