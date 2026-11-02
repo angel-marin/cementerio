@@ -3,7 +3,7 @@ export const CONFIG = {
   title: 'La noche del enterrador',
 
   // Escena que se carga al arrancar. Puedes cambiarla con ?escena=act3_brokenDreams en la URL.
-  defaultScene: 'prototype',
+  defaultScene: 'prologue',
 
   // Guardado automático en localStorage (progreso entre sesiones).
   persist: false,
