@@ -28,6 +28,8 @@ export const sfx = {
   door() { beep(110, 0.8, 'sawtooth', 0.035); beep(165, 0.8, 'sawtooth', 0.025, 0.1); },
   thud() { beep(80, 0.3, 'sine', 0.14); beep(55, 0.35, 'sine', 0.1, 0.02); },
   soft() { beep(330, 0.25, 'sine', 0.03); },
+  whisper() { beep(170, 0.6, 'sine', 0.018); beep(131, 0.7, 'triangle', 0.012, 0.15); },
+  chime(i = 0) { beep([392, 440, 494, 587, 659][i % 5], 0.35, 'sine', 0.05); },
   tick() { beep(900, 0.04, 'square', 0.02); },
   tock() { beep(700, 0.04, 'square', 0.02); }
 };

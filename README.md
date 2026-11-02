@@ -2,7 +2,7 @@
 
 Escape room en primera persona para navegador, hecho con Babylon.js. Una sorpresa basada en el vídeo corto "El sepulturero".
 
-Estado: **Fase 4 completada** (prólogo y actos 1 a 4). El prototipo original sigue como escena `prototype`, hay una escena de pruebas (`test_mechanics`) y los actos 5-7 y el epílogo son marcadores a la espera de las siguientes fases.
+Estado: **Fase 5 completada**: la historia se puede jugar entera, del prólogo al epílogo. Quedan los extras, el audio y el pulido de la Fase 6. El prototipo original sigue como escena `prototype` y hay una escena de pruebas (`test_mechanics`).
 
 El juego arranca en el prólogo y, al terminar cada acto, pasa solo al siguiente. Para saltar a otra escena: `?escena=act3_brokenDreams` al final de la URL o el menú `P`. El cementerio de pruebas original sigue disponible con `?escena=prototype`. La escena de arranque se cambia en `defaultScene` (`js/config.js`).
 
@@ -25,6 +25,7 @@ Para abrir una escena concreta: `?escena=act3_brokenDreams` al final de la URL (
 | Linterna (desde que coges el farol) | `F` | Botón **Linterna** |
 | Diario | `J` | Botón **Diario** (arriba a la izquierda) |
 | Ir más deprisa (solo en el camino del Acto 4) | `Mayús` | no hay |
+| Mantener «Usar» (Acto 6) | mantener `E` o el botón del ratón | mantener el botón **Usar** |
 | Menú de depuración | `P` | Tres toques sobre el cuadro de bolsillos |
 
 ## Estructura
@@ -43,8 +44,8 @@ js/core/
   state.js               actos, puzles resueltos, inventario y banderas
   ui.js                  pistas, diálogos, subtítulos, inventario, candado, pantallas
   audio.js               efectos sintéticos, música y sonido espacial (ganchos)
-js/mechanics/            flashlight.js, thread.js, followDream.js, dreamFragment.js, tether.js (hechas)
-js/scenes/               prologue y act1-act4 (hechas); act5-act7 y epilogue (marcadores);
+js/mechanics/            flashlight.js, thread.js, followDream.js, dreamFragment.js, tether.js (todas hechas)
+js/scenes/               prologue, act1 a act7 y epilogue (hechas);
                          prototype (el cementerio original), test_mechanics y _kit.js (piezas compartidas)
 assets/models/           child.glb, trees.glb, rocks.glb, landscape.glb
 assets/audio/            música y efectos (vacío por ahora)
@@ -97,6 +98,38 @@ t.onReleased = (motivo) => {};   // 'obstaculo' | 'giro' | 'prisa' | 'lejos'
 
 `ctx.player.canRun = true` activa Mayús para correr; `ctx.player.velocity` da la velocidad real del último fotograma.
 
+
+## Lo que hay en la Fase 5
+
+- **Acto 5, "Cuanto menos veas" (la cripta oscura):**
+  - **Puzle 9, apaga la luz:** con la linterna encendida solo se ven paredes. A oscuras brillan cinco símbolos (círculo, triángulo, cuadrado, rombo y cruz) que se encienden en un orden; hay que pulsarlos en ese mismo orden. Equivocarse solo hace que se vuelvan a mostrar. Abre una puerta de piedra.
+  - **Puzle 10, brillo inverso:** tres salas con paredes. La luz hace desaparecer los sueños y la oscuridad los muestra: se sigue su brillo hasta una salida que también solo brilla a oscuras. Se puede encender la linterna un momento para ver las paredes.
+- **Acto 6, "Las dudas":**
+  - **Puzle 11, sostén tu sueño:** el sueño atado se mantiene encendido con **Usar mantenido** mientras cuatro sombras (las dudas) se le acercan despacio y las voces susurran («no vas a poder», «es una tontería», «déjalo»). Cuanto más avanza, más brilla y menos le afectan. Si se apaga, vuelve a encenderse y se retrocede a un punto de control, sin castigo. Los números están en `HOLD` (`act6_doubts.js`).
+  - **La Gente (jefe final):** una figura hecha de voces, sin ataques. Se supera con tres tramos: a oscuras siguiendo el brillo, siguiendo al sueño y atando el hilo sin tocar sus brazos.
+- **Acto 7, "El sueño del sepulturero":**
+  - **Puzle 12, ¿dónde está su sueño?:** al amanecer hay ocho sitios con pistas (tumbas cuidadas, un farolillo y su casa). Con cinco pistas el sepulturero deja responder; las respuestas equivocadas se contestan con calma. Su sueño es el propio cementerio.
+  - **Despedida:** las frases del vídeo y el sepulturero se va hacia su casa. Si se han encontrado los 18 sueños escondidos (extra de la Fase 6), aparece el mensaje oculto: `CONFIG.neighbor.secretMessage`, o uno por defecto si está vacío.
+- **Epílogo, "Cumplió su palabra":** el niño, ya mayor (los ojos a 1,78 m). Un camino con un recuerdo por cada sueño que salvó, el cementerio vacío, el banco del sepulturero con su sombrero y, si cogiste el juguete en el prólogo, el juguete. Al salir, créditos con el nombre del vecino (`CONFIG.neighbor.name`) y un botón al vídeo original (`CONFIG.neighbor.videoUrl`, solo aparece si se rellena).
+
+Los datos de cada mapa se exportan: `SYMBOLS`, `SEQUENCE` y `ROOMS` (Acto 5), `HOLD` y `LAYOUT` (Acto 6), `LAYOUT` (actos 7 y epílogo).
+
+### Sueños escondidos (para la Fase 6)
+
+`state.addHidden(id)` guarda un sueño escondido y `state.hiddenCount()` los cuenta. El Acto 7 ya comprueba `CONFIG.hiddenDreams.total` (18) para mostrar el mensaje oculto; falta colocar los sueños por el mapa.
+
+### Novedades para los actos
+
+```js
+ctx.input.isUseHeld();                    // ¿está Usar mantenido? (E, ratón o botón táctil)
+fl.addShadowObject(mesh, { pickable: true, useShadowMaterial: false });   // solo se ve (y se puede usar) a oscuras
+fl.clearShadowObjects();                  // olvida los objetos de sombra al cambiar de etapa
+K.orbTrail(ctx, h, fl, [[x, z], ...]);    // rastro de brillos que solo se ve a oscuras (_kit.js)
+K.skyDome(ctx, h, { dawn: true });        // cielo del amanecer, sin luna
+tether.brightness = 0.5;                  // brillo del sueño atado (0 a 1)
+ctx.ui.showCredits({ title, lines, linkLabel, linkUrl, button, onClick });
+```
+
 ## Utilidades para los actos (contexto `ctx`)
 
 ```js
@@ -138,7 +171,7 @@ El gestor crea una escena de Babylon nueva para cada escena de juego y la destru
 
 ## Cómo añadir un acto nuevo
 
-1. Crea `js/scenes/miActo.js` con `id`, `title` y `load(ctx)` (copia un marcador existente como punto de partida).
+1. Crea `js/scenes/miActo.js` con `id`, `title` y `load(ctx)`. Para una escena provisional, `_placeholder.js` ofrece `makePlaceholder({ id, title, note })`; para una real, copia un acto corto como el Acto 2.
 2. Impórtalo y añádelo a la lista `SCENES` de `js/main.js`.
 3. Aparecerá solo en el menú de depuración. Para enlazarlo desde otro acto, llama a `ctx.goTo('miActo')`.
 
@@ -211,5 +244,5 @@ Los `.glb` se cargan con `loadModel(scene, 'fichero.glb')` desde `assets/models/
 2. Fase 2: mecánicas base (linterna, hilo, seguir el sueño) con una escena de pruebas (hecha)
 3. Fase 3: prólogo, acto 1 y acto 2 (hecha)
 4. Fase 4: actos 3 y 4 (hecha)
-5. Fase 5: actos 5, 6 y 7 y epílogo
+5. Fase 5: actos 5, 6 y 7 y epílogo (hecha)
 6. Fase 6: extras, audio y pulido

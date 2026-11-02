@@ -48,6 +48,7 @@ export function createTether(ctx, h, options = {}) {
   let rope = null;
 
   let state = 'idle';           // idle | tied | returning
+  let brightness = 1;
   const pos = home.clone(); pos.y = 1.2;
   const vel = new V3(0, 0, 0);
   let time = 0, fast = 0;
@@ -59,6 +60,9 @@ export function createTether(ctx, h, options = {}) {
     onTied: null,
     mesh, hit, light, home,
     get state() { return state; },
+    // Brillo del sueno (0 a 1). Lo usa Sostén tu sueño: las dudas lo apagan, el niño lo sostiene.
+    get brightness() { return brightness; },
+    set brightness(v) { brightness = Math.max(0, Math.min(1, v)); },
     get isTied() { return state === 'tied'; },
     get position() { return pos; },
     get distanceToPlayer() { return Math.hypot(pos.x - camera.position.x, pos.z - camera.position.z); },
@@ -146,8 +150,9 @@ export function createTether(ctx, h, options = {}) {
     } else {
       pos.y = home.y + Math.sin(time * 2) * 0.06;
     }
-    const pulse = 0.85 + Math.sin(time * 3) * 0.15;
+    const pulse = (0.85 + Math.sin(time * 3) * 0.15) * (0.08 + 0.92 * brightness);
     mat.emissiveColor = new B.Color3(pulse, pulse, pulse);
+    light.intensity = 0.6 * (0.1 + 0.9 * brightness);
     mesh.position.copyFrom(pos);
   }
 

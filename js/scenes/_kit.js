@@ -40,14 +40,15 @@ export function materials(h) {
 }
 
 /* ---------- Cielo con luna ---------- */
-export function skyDome(ctx, h) {
+export function skyDome(ctx, h, { dawn = false } = {}) {
   const { scene } = ctx;
   const { MB, V3, dtex, noiseTex } = h;
   const skyTex = dtex(1024, 512, (c, w, hh) => {
     const g = c.createLinearGradient(0, 0, 0, hh);
-    g.addColorStop(0, '#020202'); g.addColorStop(0.42, '#141414'); g.addColorStop(0.5, '#2a2a2a'); g.addColorStop(0.58, '#141414'); g.addColorStop(1, '#080808');
+    if (dawn) { g.addColorStop(0, '#2a2a2a'); g.addColorStop(0.35, '#5c5c5c'); g.addColorStop(0.5, '#c4c4c4'); g.addColorStop(0.58, '#6a6a6a'); g.addColorStop(1, '#262626'); }
+    else { g.addColorStop(0, '#020202'); g.addColorStop(0.42, '#141414'); g.addColorStop(0.5, '#2a2a2a'); g.addColorStop(0.58, '#141414'); g.addColorStop(1, '#080808'); }
     c.fillStyle = g; c.fillRect(0, 0, w, hh);
-    for (let i = 0; i < 160; i++) { c.fillStyle = 'rgba(255,255,255,' + (0.15 + Math.random() * 0.5) + ')'; c.fillRect(Math.random() * w, Math.random() * hh * 0.4, 1.4, 1.4); }
+    for (let i = 0; i < (dawn ? 12 : 160); i++) { c.fillStyle = 'rgba(255,255,255,' + (0.15 + Math.random() * 0.5) + ')'; c.fillRect(Math.random() * w, Math.random() * hh * 0.4, 1.4, 1.4); }
   });
   const dome = MB.CreateSphere('dome', { diameter: 300, segments: 16, sideOrientation: B.Mesh.BACKSIDE }, scene);
   const dm = new B.StandardMaterial('dome', scene);
@@ -66,7 +67,11 @@ export function skyDome(ctx, h) {
   mm.disableLighting = true; mm.emissiveTexture = moonTex; mm.fogEnabled = false;
   const moon = MB.CreateSphere('moonDisc', { diameter: 15, segments: 24 }, scene);
   moon.material = mm; moon.position.set(60, 45, 70); moon.infiniteDistance = true; moon.isPickable = false; moon.applyFog = false;
-  if (ctx.moon) { const d = new V3(-60, -45, -70).normalize(); ctx.moon.direction = d; ctx.moon.position = d.scale(-25); }
+  if (dawn) moon.setEnabled(false);
+  if (ctx.moon) {
+    const d = dawn ? new V3(-0.8, -0.35, -0.4).normalize() : new V3(-60, -45, -70).normalize();
+    ctx.moon.direction = d; ctx.moon.position = d.scale(-25);
+  }
   return { dome, moon };
 }
 
@@ -237,4 +242,29 @@ export function nature(ctx, h, M, { inner = [], far = [], rocks = [] } = {}) {
     });
   }).catch((err) => console.error('No se pudieron cargar las rocas', err)) : Promise.resolve();
   return Promise.all([trees, rocksP]);
+}
+
+/* ---------- Rastro de brillos (solo se ven con la linterna apagada) ---------- */
+// points: [[x, z], ...]. Devuelve las esferas. Necesita la linterna (mecánica flashlight) para el fundido.
+export function orbTrail(ctx, h, fl, points, { spacing = 1.2, y = 1.0, size = 0.22, parent = null } = {}) {
+  const { MB } = h;
+  const m = new B.StandardMaterial('orbMat', ctx.scene);
+  m.disableLighting = true; m.emissiveColor = new B.Color3(1, 1, 1);
+  const out = [];
+  const put = (x, z) => {
+    const o = MB.CreateSphere('orb', { diameter: size, segments: 8 }, ctx.scene);
+    o.position.set(x, y, z); o.material = m; if (parent) o.parent = parent;
+    fl.addShadowObject(o, { useShadowMaterial: false, maxVisibility: 1 });
+    out.push(o);
+  };
+  let carry = 0;
+  put(points[0][0], points[0][1]);
+  for (let i = 1; i < points.length; i++) {
+    const [x0, z0] = points[i - 1], [x1, z1] = points[i];
+    const len = Math.hypot(x1 - x0, z1 - z0);
+    let d = spacing - carry;
+    while (d <= len) { const t = d / len; put(x0 + (x1 - x0) * t, z0 + (z1 - z0) * t); d += spacing; }
+    carry = len - (d - spacing);
+  }
+  return out;
 }

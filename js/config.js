@@ -10,6 +10,8 @@ export const CONFIG = {
   persist: false,
 
   // Personalización de la sorpresa (se usará en la Fase 6).
+  hiddenDreams: { total: 18 },   // sueños escondidos por el mapa (Fase 6); en el Acto 7 desbloquean el mensaje oculto
+
   neighbor: {
     name: '',                 // nombre del vecino para la lápida o el grafiti
     secretMessage: '',        // mensaje final si encuentra los 18 sueños
@@ -273,6 +275,148 @@ export const CONFIG = {
       ],
       journalCourse: { id: 'siguen', title: 'Que te sigan', text: 'Los sueños se llevan con calma: sin giros bruscos ni prisas, y dando rodeos amplios para que no se enganchen.' },
       newEntry: 'Nueva entrada en el diario (J)'
+    },
+
+    act5: {
+      title: 'Acto 5: Cuanto menos veas',
+      intro: [
+        { name: 'Sepulturero', text: 'Aquí abajo la luz estorba, chico. Haz que te sigan todo el camino. Y que cuanto menos veas, más fuerte sea su brillo.' }
+      ],
+      tipOn: 'Con la linterna encendida solo ves paredes. Apágala (F o el botón Linterna) y mira bien.',
+      tipOff: 'Los símbolos brillan en la oscuridad. Fíjate en el orden en que se encienden.',
+      tipRepeat: 'Pulsa los símbolos en el mismo orden en que se encendieron. Si te equivocas, volverán a mostrarse.',
+      wrong: 'No era ese. Mira otra vez cómo se encienden.',
+      symbolHint: 'Pulsar el símbolo',
+      symbolsSolved: 'Los cinco símbolos responden a la vez y una puerta de piedra se abre al este.',
+      journalSymbols: { id: 'simbolos', title: 'La luz estorba', text: 'En la cripta, con la linterna encendida solo se ven paredes. A oscuras, lo importante brilla.' },
+      doorOpen: 'La puerta de piedra está abierta. Atraviésala.',
+      rooms: [
+        'Primera sala: la luz hace desaparecer los sueños. Apaga la linterna y sigue su brillo hasta la salida.',
+        'Segunda sala: más paredes y menos luz. Enciende la linterna un momento si te pierdes; luego, apágala y sigue el brillo.',
+        'Tercera sala: el camino da muchas vueltas. Cuanto menos veas, más fuerte brilla.'
+      ],
+      roomDone: ['Primera sala superada.', 'Segunda sala superada.'],
+      lost: 'Notas una pared fría. Enciende la linterna un momento para ver dónde estás.',
+      endDialogue: [
+        { name: 'Sepulturero', text: '¿Lo ves, chico? Cuanto menos ves, más fuerte brilla.' },
+        { name: 'Sepulturero', text: 'Ahora sal. Fuera te esperan los que dicen que no se puede.' }
+      ],
+      journalDark: { id: 'brillo', title: 'Brillo inverso', text: 'Cuanto menos veas, más fuerte es el brillo de los sueños. A veces hay que apagar la luz para ver bien.' }
+    },
+
+    act6: {
+      title: 'Acto 6: Las dudas',
+      intro: [
+        'Fuera, el aire se llena de voces que no son de nadie.',
+        'Dicen cosas que ya habías oído. No hacen daño: solo intentan apagar.'
+      ],
+      doubts: ['No vas a poder.', 'Es una tontería.', 'Déjalo.', '¿Para qué intentarlo?', 'Eso no sirve de nada.', 'Ya eres mayor para estas cosas.', 'Los demás se rieron.', 'Mejor no lo intentes.'],
+      holdTie: 'Atar el sueño',
+      holdPromptDesktop: 'Mantén pulsada E (o el botón del ratón) para sostener tu sueño, y aléjate de las sombras.',
+      holdPromptTouch: 'Mantén pulsado Usar para sostener tu sueño, y aléjate de las sombras con el joystick.',
+      barText: 'Sostén tu sueño: que el anillo se acerque al centro.',
+      extinguished: 'El sueño parpadea y se apaga un instante... y vuelve a encenderse. Cuando quieras, sigue.',
+      checkpoint: 'Cada vez brilla más fuerte.',
+      holdDone: ['El sueño no se apagó.', 'Las voces se juntan en una sola, enorme.'],
+      journalHold: { id: 'sosten', title: 'Sostén tu sueño', text: 'Las dudas apagan, pero un sueño sostenido brilla cada vez más fuerte. Hay que alejarse de las sombras y no soltarlo.' },
+      bossIntro: ['Las voces se hicieron una figura: La Gente.', 'No pega ni persigue. Solo dice que no se puede.'],
+      bossVoices: ['¿Y si fracasas?', 'Eso no es para ti.', 'Todos lo dijeron.', 'Hazte mayor.', 'Déjalo estar.'],
+      legs: [
+        'Primer tramo, en la oscuridad: apaga la linterna y sigue el brillo hasta el primer pedestal.',
+        'Segundo tramo: sigue al sueño sin perderlo hasta el segundo pedestal.',
+        'Último tramo: ata el hilo del corazón a la cabeza, sin tocar los brazos de La Gente.'
+      ],
+      legDone: ['Una de las voces se queda en silencio.', 'Otra voz calla. Quedan pocas.'],
+      pedestal: 'Un pedestal donde el sueño puede descansar.',
+      bossDone: [
+        'La Gente se deshizo en voces pequeñas.',
+        'Y cada una dijo algo distinto: «sigue», «puedes», «hazlo a tu manera».'
+      ],
+      afterVoices: ['Sigue.', 'Puedes.', 'Hazlo a tu manera.'],
+      journalBoss: { id: 'gente', title: 'La Gente', text: 'La Gente dice que no se puede. Se supera con calma: en la oscuridad, siguiendo al sueño y atándolo bien fuerte.' },
+      look: { sombra: 'Una zona de sombra. Mejor no acercarse.', gente: 'La Gente: una figura hecha de voces.', brazo: 'Un brazo de La Gente: un hilo hecho de voces. No lo toques.' }
+    },
+
+    act7: {
+      title: 'Acto 7: El sueño del sepulturero',
+      dawn: ['Amaneció sin que nadie lo notara.', 'El cementerio, a la luz del alba, parecía distinto.'],
+      intro: [
+        { name: 'Sepulturero', text: 'Has llegado lejos, chico.' },
+        { name: 'Niño', text: '¡Pero, señor! ¿Y su sueño?' },
+        { name: 'Sepulturero', text: 'El mío está aquí, pequeño. Lo puse aquí dentro.' }
+      ],
+      task: 'El sepulturero dice que su sueño está «aquí dentro». Mira a tu alrededor con calma: ¿dónde puede estar? Cuando lo sepas, díselo.',
+      clueCount: (n, total) => 'Pistas: ' + n + '/' + total,
+      clues: {
+        t1: 'Una tumba antigua con flores frescas. Alguien las cambia cada semana.',
+        t2: 'Las letras de esta lápida están repasadas una a una, con cuidado.',
+        t3: 'La hierba de esta tumba está recortada a mano, no a máquina.',
+        t4: 'Hay una piedra pequeña sobre esta tumba, siempre en el mismo sitio.',
+        t5: 'Una lápida sin nombre, pero muy cuidada: alguien le habla cada noche.',
+        t6: 'La tumba pequeña, la de dos años. Tiene un lazo recién atado.',
+        lamp: 'Un farolillo con la mecha recién cortada. Está siempre encendido para los que duermen.',
+        house: 'La casa del sepulturero: sencilla, sin caprichos. Su sueño no está guardado aquí dentro.'
+      },
+      needClues: 5,
+      talkHints: ['Mira a tu alrededor, pequeño. ¿Qué tienen en común las cosas de este sitio?', 'Fíjate en cómo están las tumbas. Y en quién las cuida.'],
+      tellHint: 'Decirle dónde está su sueño',
+      ask: '¿Dónde está el sueño del sepulturero?',
+      options: {
+        casa: 'En su casa, guardado en un cajón',
+        ataud: 'En el ataúd del fondo, bajo candado',
+        bolsillo: 'En el bolsillo de su abrigo',
+        todo: 'En todo el cementerio: en cada tumba cuidada'
+      },
+      wrong: {
+        casa: 'Mi casa es sencilla, chico. No guardo nada que no se use.',
+        ataud: 'El ataúd solo guarda lo que se rompió. Mi sueño no está roto.',
+        bolsillo: 'Ahí solo caben las llaves. Mi sueño es más grande.'
+      },
+      notEnough: 'Aún no has mirado lo bastante. Fíjate en cómo están las tumbas.',
+      solved: [
+        { name: 'Niño', text: 'Su sueño es el cementerio. Cada tumba cuidada es un sueño que tuvo un buen fin.' },
+        { name: 'Sepulturero', text: '(Ríe) El mío está aquí, pequeño. Lo puse aquí dentro. Me propuse que todos los sueños tuvieran un buen fin.' },
+        { name: 'Sepulturero', text: 'Chico, espero que cuides bien de tus sueños.' },
+        { name: 'Niño', text: '¡Sí, señor! He aprendido de usted que hay que cuidar bien de ellos.' },
+        { name: 'Niño', text: 'Aunque usted sea un buen hombre, no quiero que mis sueños acaben aquí con usted. ¡Intentaré cumplir todos y cada uno de mis sueños!' }
+      ],
+      farewell: ['El sepulturero sonrió, se quitó el sombrero y echó a andar hacia su casa.', 'En paz.'],
+      journalDream: { id: 'sueno', title: 'El sueño del sepulturero', text: 'Su sueño es el propio cementerio: cada tumba cuidada es un sueño que tuvo un buen fin.' },
+      secretTitle: 'Mensaje oculto',
+      secretDefault: 'Has encontrado todos los sueños escondidos. Gracias por cuidar de ellos.'
+    },
+
+    epilogue: {
+      title: 'Epílogo: Cumplió su palabra',
+      intro: [
+        'Y cumplió su palabra.',
+        'Por mucho que la gente le dijera, por muchas dudas que él tuviera, nada permitió que acabaran en el Cementerio de los Sueños.'
+      ],
+      jump: 'Pasaron los años.',
+      tip: 'Recorre el camino y mira lo que fue de tus sueños.',
+      emptyPlaque: 'El cementerio de los sueños está vacío. Ningún sueño acabó aquí.',
+      stand: 'Un recuerdo',
+      achievements: [
+        { id: 'cohete', puzzle: 'p4_cohete', dream: 'cohete', title: 'El cohete', text: 'Dibujó un cohete en su cuaderno y, años después, ayudó a construir uno de verdad.' },
+        { id: 'violin', puzzle: 'p4_violin', dream: 'violin', title: 'El violín', text: 'Aprendió a tocar. La primera noche que dio un concierto, dedicó la primera canción al sepulturero.' },
+        { id: 'balon', puzzle: 'p4_balon', dream: 'balon', title: 'El balón', text: 'Jugó cada domingo con los niños del barrio. Ese balón nunca volvió a pincharse.' },
+        { id: 'escapan', puzzle: 'p5_suenos', title: 'Los que se escapan', text: 'Siguió a sus sueños de seis y de siete años sin perderlos de vista, y alcanzó los dos.' },
+        { id: 'nudo', puzzle: 'p7_nudo', title: 'El nudo', text: 'Aprendió a atar sus sueños bien fuerte a su corazón y a su cabeza. Ninguno se le perdió por el camino.' },
+        { id: 'siguen', puzzle: 'p8_siguen', title: 'Que te sigan', text: 'Hizo que sus sueños le siguieran todo el camino, sin prisas y dando rodeos amplios.' },
+        { id: 'brillo', puzzle: 'p10_brillo', title: 'Cuanto menos veas', text: 'Cuando todo se puso oscuro, supo fiarse del brillo de lo que de verdad importaba.' },
+        { id: 'sosten', puzzle: 'p11_sosten', title: 'Sostén tu sueño', text: 'Las dudas siguieron llegando. Él siguió sosteniendo su sueño, cada vez más fuerte.' }
+      ],
+      bench: 'El banco del sepulturero. Hace tiempo que se jubiló, pero su sombrero sigue aquí.',
+      toy: 'Tu juguete de siempre. Lo has guardado todos estos años.',
+      gate: 'Salir del cementerio',
+      gateText: 'La verja del cementerio, abierta. Ya no hay nada que encerrar.',
+      credits: {
+        title: 'Fin',
+        lines: ['La noche del enterrador.', 'Un juego basado en el vídeo corto «El sepulturero».', '«Chico, espero que cuides bien de tus sueños.»'],
+        forName: (n) => 'Para ' + n + '.',
+        linkLabel: 'Ver el vídeo original',
+        button: 'Volver a empezar'
+      }
     }
   },
 

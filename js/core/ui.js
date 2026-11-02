@@ -254,6 +254,26 @@ export function createUI() {
       btn.onclick = () => { startEl.classList.remove('show'); onStart && onStart(); };
     },
 
+    // Créditos finales: título, líneas de texto y, si hay enlace, un botón para abrirlo.
+    showCredits({ title, lines, linkLabel, linkUrl, button, onClick }) {
+      endEl.textContent = '';
+      const kids = [el('h1', title)];
+      lines.forEach((l) => kids.push(el('p', l)));
+      const row = el('div', '', 'row');
+      if (linkUrl) {
+        const a = el('a', linkLabel, 'btn ghost'); a.href = linkUrl; a.target = '_blank'; a.rel = 'noopener';
+        row.appendChild(a);
+      }
+      const btn = el('button', button, 'btn'); btn.type = 'button';
+      row.appendChild(btn); kids.push(row);
+      endEl.appendChild(ui.card(...kids));
+      endEl.classList.add('show');
+      ui.modalOpen = true;
+      ui.setHint(null);
+      ui.onModalChange && ui.onModalChange(true);
+      btn.onclick = () => { endEl.classList.remove('show'); ui.modalOpen = false; ui.onModalChange && ui.onModalChange(false); onClick && onClick(); };
+    },
+
     showEnd({ title, text, button, onClick }) {
       endEl.textContent = '';
       const btn = el('button', button, 'btn'); btn.type = 'button';

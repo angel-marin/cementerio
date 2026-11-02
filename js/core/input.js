@@ -8,6 +8,7 @@ export function createInput({ canvas, isTouch }) {
   const $ = (id) => document.getElementById(id);
   const keys = {};
   const joy = { x: 0, y: 0 };
+  let mouseHeld = false, touchUseHeld = false;
 
   const input = {
     enabled: false,
@@ -20,6 +21,8 @@ export function createInput({ canvas, isTouch }) {
     onLockChange: null,   // (locked)
 
     isLocked: () => document.pointerLockElement === canvas,
+    // ¿Esta Usar mantenido? (tecla E, boton del raton con el puntero capturado o boton tactil)
+    isUseHeld: () => !!(input.enabled && (keys.KeyE || mouseHeld || touchUseHeld)),
     isRunning: () => !!(input.enabled && (keys.ShiftLeft || keys.ShiftRight)),
 
     requestLock() {
@@ -63,13 +66,15 @@ export function createInput({ canvas, isTouch }) {
     keys[e.code] = true;
   });
   window.addEventListener('keyup', (e) => { keys[e.code] = false; });
-  window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+  window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; mouseHeld = false; touchUseHeld = false; });
 
   /* Ratón */
   document.addEventListener('mousemove', (e) => {
     if (!input.enabled || !input.isLocked()) return;
     input.onLook && input.onLook(e.movementX * MOUSE_SENS, e.movementY * MOUSE_SENS);
   });
+  canvas.addEventListener('mousedown', () => { if (input.isLocked()) mouseHeld = true; });
+  window.addEventListener('mouseup', () => { mouseHeld = false; });
   canvas.addEventListener('click', () => {
     if (!input.enabled || isTouch) return;
     if (input.isLocked()) input.onUse && input.onUse(); else input.requestLock();
@@ -103,7 +108,9 @@ export function createInput({ canvas, isTouch }) {
   stick.addEventListener('touchcancel', endStick);
 
   /* Botones táctiles */
-  $('use').addEventListener('touchstart', (e) => { e.preventDefault(); if (input.enabled) input.onUse && input.onUse(); }, { passive: false });
+  $('use').addEventListener('touchstart', (e) => { e.preventDefault(); touchUseHeld = true; if (input.enabled) input.onUse && input.onUse(); }, { passive: false });
+  const endUse = () => { touchUseHeld = false; };
+  $('use').addEventListener('touchend', endUse); $('use').addEventListener('touchcancel', endUse);
   $('flashBtn').addEventListener('touchstart', (e) => { e.preventDefault(); if (input.enabled) input.onFlashlight && input.onFlashlight(); }, { passive: false });
 
   /* Arrastrar para mirar */

@@ -60,21 +60,26 @@ export function createFlashlight(ctx, options = {}) {
       if (!v) fl.set(false);
     },
 
-    addShadowObject(mesh, { flag = null, maxVisibility = 0.9, useShadowMaterial = true } = {}) {
+    // pickable: true = se puede apuntar y usar mientras se ve (los simbolos de la cripta)
+    addShadowObject(mesh, { flag = null, maxVisibility = 0.9, useShadowMaterial = true, pickable = false } = {}) {
       if (useShadowMaterial) mesh.material = shadowMat;
-      mesh.isPickable = false;
+      mesh.isPickable = pickable;
       mesh.visibility = 0;
       entries.push({ mesh, flag, max: maxVisibility, v: 0 });
       return mesh;
     },
 
-    // ¿Se está viendo ahora mismo este objeto de sombra?
+    // Olvida todos los objetos de sombra (al cambiar de etapa dentro de una escena).
+    clearShadowObjects() { entries.length = 0; },
+
+    // ¿Se esta viendo ahora mismo este objeto de sombra?
     isRevealed(mesh) {
       const e = entries.find((x) => x.mesh === mesh);
       return !!e && e.v > 0.5;
     },
 
     update(dt) {
+      for (let i = entries.length - 1; i >= 0; i--) if (entries[i].mesh.isDisposed()) entries.splice(i, 1);
       for (const e of entries) {
         const target = !fl.isOn && (!e.flag || hasFlag(e.flag)) ? e.max : 0;
         e.v += (target - e.v) * Math.min(1, dt * 4);

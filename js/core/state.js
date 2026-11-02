@@ -31,6 +31,14 @@ export function hasItem(id) { return state.inventory.includes(id); }
 export function solvePuzzle(id) { if (!state.solvedPuzzles.has(id)) { state.solvedPuzzles.add(id); changed(); } }
 export function isSolved(id) { return state.solvedPuzzles.has(id); }
 
+// Suenos escondidos por el mapa (extra de la Fase 6): se guardan en state.flags.hidden.
+export const hiddenCount = () => (state.flags.hidden || []).length;
+export function addHidden(id) {
+  const h = state.flags.hidden || [];
+  if (h.includes(id)) return false;
+  setFlag('hidden', [...h, id]); return true;
+}
+
 export function addJournal(entry) {
   if (state.journal.some((e) => e.id === entry.id)) return false;
   state.journal.push(entry); changed(); return true;
