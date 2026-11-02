@@ -107,3 +107,7 @@ button{font:inherit;color:inherit}
 .entry h3{margin:0 0 4px;font-family:'Special Elite','Courier New',monospace;font-weight:400;font-size:18px;color:#fff}
 .entry p{margin:0;line-height:1.45}
 @media (prefers-reduced-motion:reduce){#fade{transition:none}}
+
+#status{position:absolute;left:calc(14px + env(safe-area-inset-left,0px));top:calc(104px + env(safe-area-inset-top,0px));max-width:min(70vw,360px);
+  padding:6px 12px;border-radius:6px;background:var(--panel);border:1px solid var(--line);font-size:15px;line-height:1.35;color:var(--ink)}
+#status[hidden]{display:none}

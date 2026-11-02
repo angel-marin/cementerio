@@ -22,7 +22,7 @@ import * as testMechanics from './scenes/test_mechanics.js';
 
 /* ---------- Registro de escenas ---------- */
 // Para añadir un acto nuevo: crea js/scenes/<nombre>.js con { id, title, load, unload } y añádelo aquí.
-const SCENES = [prototype, testMechanics, prologue, act1, act2, act3, act4, act5, act6, act7, epilogue];
+const SCENES = [prologue, act1, act2, act3, act4, act5, act6, act7, epilogue, prototype, testMechanics];
 const registry = new Map(SCENES.map((s) => [s.id, s]));
 
 /* ---------- Núcleo ---------- */

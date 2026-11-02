@@ -9,6 +9,9 @@ export function createPlayer({ camera, input }) {
     pitch: 0,
     speed: 2.5,
     eye: 1.65,
+    canRun: false,           // Mayús para ir más deprisa (solo donde la escena lo permita)
+    runFactor: 1.7,
+    velocity: { x: 0, z: 0, speed: 0 },   // velocidad real del último fotograma (m/s)
     moveLocked: false,       // true = puede mirar pero no andar (minijuegos)
     frozen: true,            // true = no se mueve ni mira (menús, diálogos modales, pantalla de inicio)
     bounds: { minX: -5.4, maxX: 5.4, minZ: -5.4, maxZ: 5.4 },
@@ -45,11 +48,12 @@ export function createPlayer({ camera, input }) {
     },
 
     update(dt) {
+      const bx = camera.position.x, bz = camera.position.z;
       if (!player.frozen && !player.moveLocked) {
         const m = input.getMove();
         const len = Math.hypot(m.x, m.y);
         if (len > 0.05) {
-          const s = player.speed * dt, sy = Math.sin(player.yaw), cy = Math.cos(player.yaw);
+          const s = player.speed * (player.canRun && input.isRunning() ? player.runFactor : 1) * dt, sy = Math.sin(player.yaw), cy = Math.cos(player.yaw);
           camera.position.x += (sy * m.y + cy * m.x) * s;
           camera.position.z += (cy * m.y - sy * m.x) * s;
           resolve(camera.position, player);
@@ -59,6 +63,8 @@ export function createPlayer({ camera, input }) {
       }
       camera.rotation.x = player.pitch;
       camera.rotation.y = player.yaw;
+      const vx = (camera.position.x - bx) / Math.max(dt, 1e-4), vz = (camera.position.z - bz) / Math.max(dt, 1e-4);
+      player.velocity.x = vx; player.velocity.z = vz; player.velocity.speed = Math.hypot(vx, vz);
     }
   };
   return player;

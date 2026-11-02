@@ -9,14 +9,17 @@ export function createUI() {
   const invEl = $('inv'), invText = $('invText'), resumeEl = $('resume');
   const startEl = $('start'), endEl = $('end'), modalEl = $('modal'), debugEl = $('debug');
   const dialogEl = $('dialog'), fadeEl = $('fade'), journalBtn = $('journalBtn'), rhythmEl = $('rhythm');
-  let advanceResolver = null;
+  let advanceResolver = null, cancelWait = null;
 
   // Espera a que el jugador avance (E, clic o Usar) o a que pase el tiempo.
+  // Si la escena cambia mientras tanto (reset), la espera se cancela y la promesa no se resuelve nunca:
+  // así el guion de la escena antigua no sigue hablando encima de la nueva.
   function waitAdvance(ms) {
     return new Promise((resolve) => {
-      const done = () => { clearTimeout(t); if (advanceResolver === done) advanceResolver = null; resolve(); };
+      const done = () => { clearTimeout(t); if (advanceResolver === done) advanceResolver = null; cancelWait = null; resolve(); };
       const t = setTimeout(done, ms);
       advanceResolver = done;
+      cancelWait = () => { clearTimeout(t); advanceResolver = null; cancelWait = null; };
     });
   }
 
@@ -69,6 +72,9 @@ export function createUI() {
       invText.textContent = names.length ? names.join(', ') : CONFIG.texts.emptyInventory;
       invEl.classList.toggle('has', names.length > 0);
     },
+
+    // Línea de estado bajo el inventario (p. ej. fragmentos recogidos). Texto vacío = se oculta.
+    setStatus(text) { const e = $('status'); e.textContent = text || ''; e.hidden = !text; },
 
     setResumeVisible(v) { resumeEl.classList.toggle('show', !!v); },
 
@@ -226,12 +232,15 @@ export function createUI() {
 
     // Limpia lo que queda de la escena anterior.
     reset() {
+      if (cancelWait) cancelWait();
       advanceResolver = null;
       dialogEl.classList.remove('show');
       ui.dialogueOpen = false;
-      clearTimeout(subsTimer); subsEl.classList.remove('show');
-      clearTimeout(toastTimer); toastEl.classList.remove('show');
+      clearTimeout(subsTimer); subsEl.classList.remove('show'); subsEl.textContent = '';
+      clearTimeout(toastTimer); toastEl.classList.remove('show'); toastEl.textContent = '';
+      dialogEl.textContent = '';
       ui.rhythm.hide();
+      ui.setStatus('');
       if (ui.modalOpen) ui.closeModal();
     },
 

@@ -92,7 +92,7 @@ export function createHelpers(scene) {
     return c;
   }
 
-  return { MB, V3, dtex, noiseTex, mat, texMat, box, cyl, sphere, capsule, limb };
+  return { scene, MB, V3, dtex, noiseTex, mat, texMat, box, cyl, sphere, capsule, limb };
 }
 
 // Carga un modelo de assets/models/ (la ruta es relativa a index.html).

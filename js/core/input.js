@@ -20,6 +20,7 @@ export function createInput({ canvas, isTouch }) {
     onLockChange: null,   // (locked)
 
     isLocked: () => document.pointerLockElement === canvas,
+    isRunning: () => !!(input.enabled && (keys.ShiftLeft || keys.ShiftRight)),
 
     requestLock() {
       if (isTouch) return;

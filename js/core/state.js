@@ -2,7 +2,7 @@
 const KEY = 'noche-del-enterrador-v1';
 
 export const state = {
-  act: 'prototype',
+  act: 'prologue',
   solvedPuzzles: new Set(),
   inventory: [],
   flags: {},
@@ -38,7 +38,7 @@ export function addJournal(entry) {
 export function hasJournal(id) { return state.journal.some((e) => e.id === id); }
 
 export function reset() {
-  state.act = 'prototype';
+  state.act = 'prologue';
   state.solvedPuzzles = new Set();
   state.inventory = [];
   state.flags = {};

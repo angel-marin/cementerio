@@ -2,7 +2,8 @@
 export const CONFIG = {
   title: 'La noche del enterrador',
 
-  // Escena que se carga al arrancar. Puedes cambiarla con ?escena=act3_brokenDreams en la URL.
+  // Escena con la que arranca el juego. Para saltar a otra, añade ?escena=act3_brokenDreams a la URL
+  // (o ?escena=prototype para el cementerio de pruebas original) o usa el menú de depuración (tecla P).
   defaultScene: 'prologue',
 
   // Guardado automático en localStorage (progreso entre sesiones).
@@ -167,12 +168,117 @@ export const CONFIG = {
         sepulturero: 'El sepulturero espera a tu lado.'
       },
       newEntry: 'Nueva entrada en el diario (J)'
+    },
+
+    act3: {
+      title: 'Acto 3: Sueños rotos',
+      intro: [
+        { name: 'Sepulturero', text: 'La mayoría no llega a los seis o siete años, cuando uno deja de seguirlos. Pero otros, como este, no llegan ni a los dos.' },
+        { name: 'Sepulturero', text: 'Por el cementerio hay trozos de sueños rotos. Recógelos entre las lápidas, chico, y devuélveles su forma.' }
+      ],
+      objective: 'Busca los fragmentos que brillan entre las lápidas. Cada sueño tiene tres.',
+      fragmentsHelp: 'Cuando tengas fragmentos, acércate a la lápida del sueño y coloca cada uno en la silueta que le corresponda.',
+      dreamTombs: {
+        cohete: 'La lápida de un sueño roto. Sobre ella flotan las siluetas de un cohete.',
+        violin: 'La lápida de un sueño roto. Sobre ella flotan las siluetas de un violín.',
+        balon: 'La lápida de un sueño roto. Sobre ella flotan las siluetas de un balón.'
+      },
+      dreamDone: {
+        cohete: { id: 'cohete', title: 'Un cohete', text: 'Alguien soñó con llegar a la luna. El cohete estaba roto en tres trozos y ahora vuelve a ser uno.' },
+        violin: { id: 'violin', title: 'Un violín', text: 'Un violín que nadie llegó a tocar. Entero otra vez, espera su primera canción.' },
+        balon: { id: 'balon', title: 'Un balón', text: 'Un balón que se pinchó en el primer partido. Entero otra vez, espera a alguien con quien rodar.' }
+      },
+      oneDone: ['Un sueño entero ya no está roto: está dormido, esperando.'],
+      allDone: [
+        'Los tres sueños volvieron a ser sueños.',
+        'Pero los de seis y siete años no se quedan quietos: se escapan cuando uno deja de seguirlos.'
+      ],
+      follow: {
+        hint: 'Seguir el sueño',
+        busy: 'Un sueño que se escapa. Síguelo con calma.',
+        prompt: 'Sigue la luz. Si te alejas, esperará.',
+        wait: 'El sueño espera. Acércate.',
+        arrived6: 'El sueño de seis años descansa por fin junto a su lápida.',
+        arrived7: 'El sueño de siete años descansa por fin junto a su lápida.',
+        tomb6: 'La lápida de un niño de seis años. Alguien ha dejado un lazo.',
+        tomb7: 'La lápida de un niño de siete años. Tiene un dibujo a lápiz grabado.',
+        next: 'Se oye otro sueño escapándose, más allá de las lápidas.'
+      },
+      journalFollow: { id: 'escapan', title: 'Los que se alejan', text: 'Los sueños de seis y siete años se escapan cuando uno deja de seguirlos. Hay que ir tras ellos con calma, sin perderlos de vista.' },
+      slabsRise: 'Las lápidas de la cripta se han soltado de la tierra. Algo las pide en orden.',
+      slabsSealed: 'Las lápidas siguen selladas. Antes, ayuda a los sueños que se escapan.',
+      slabHintPick: 'Mover esta lápida',
+      slabHintSwap: 'Cambiarla de sitio con la elegida',
+      slabSorted: 'Las edades quedan en orden y la cripta se abre.',
+      plaque: 'En la puerta de la cripta hay una placa: «De los más pequeños a los mayores».',
+      crypt: 'La puerta de la cripta. Sigue cerrada.',
+      cryptOpen: [
+        { name: 'Sepulturero', text: '¡Por eso, chico, es importante que cuides de tus sueños!' },
+        { name: 'Sepulturero', text: 'Hay que atarlos siempre, bien fuerte a tu corazón y a tu cabeza. Ven, entra: te enseño cómo.' }
+      ],
+      journalCrypt: { id: 'cripta', title: 'La cripta', text: 'De los más pequeños a los mayores: así se abre la cripta.' },
+      enter: 'Entra en la cripta por la puerta abierta.'
+    },
+
+    act4: {
+      title: 'Acto 4: Atar los sueños',
+      intro: [
+        { name: 'Sepulturero', text: 'Un sueño que no está atado se pierde. Une tu corazón con tu cabeza con este hilo, y que no se cruce con nada.' },
+        { name: 'Niño', text: '¿Y si se cruza?' },
+        { name: 'Sepulturero', text: 'Entonces se recoge solo y lo intentas otra vez. Los nudos buenos se hacen despacio.' }
+      ],
+      knotHint: { A: 'Coger el hilo del corazón', carrying: 'Soltar el hilo', B: 'Atar a la cabeza', Bwait: 'La cabeza (primero coge el hilo)' },
+      knotStart: 'Lleva el hilo del corazón hasta la cabeza sin cruzarlo ni tocar los charcos.',
+      knotBreak: {
+        propio: 'El hilo se ha cruzado consigo mismo. Se recoge solo; vuelve a intentarlo con calma.',
+        otro: 'El hilo ha tocado otro hilo. Se recoge solo; rodéalo por un extremo.',
+        obstaculo: 'El hilo ha tocado un charco. Se recoge solo; pasa lejos de él.'
+      },
+      knotTied: ['Hilo atado. El nudo aguanta.', 'Segundo nudo atado. Cada vez más fuerte.', 'Tercer nudo atado. Este no se suelta.'],
+      knotLevels: ['Primer nudo: un hilo atravesado.', 'Segundo nudo: dos hilos y un charco.', 'Tercer nudo: un laberinto de hilos y charcos.'],
+      knotDone: [
+        { name: 'Sepulturero', text: 'Muy bien, chico. Los sueños se atan siempre despacio y bien fuerte.' },
+        { name: 'Sepulturero', text: 'Ahora lo más difícil: haz que te sigan todo el camino.' }
+      ],
+      journalKnot: { id: 'nudo', title: 'El nudo', text: 'Hay que atar los sueños siempre, bien fuerte a tu corazón y a tu cabeza. Los nudos buenos se hacen despacio.' },
+      courseIntro: 'Lleva el sueño atado detrás de ti, con calma. Si giras de golpe, corres (Mayús) o el sueño roza algo, se soltará y volverá al inicio del tramo. No pasa nada: vuelve a por él.',
+      courseTie: 'Atar el sueño',
+      courseTied: 'Sueño atado. Camina despacio y da rodeos amplios.',
+      courseDrop: 'Dejar el sueño aquí',
+      courseRest: 'El sueño descansa un momento. Cuando quieras, vuelve a atarlo.',
+      courseWait: 'El sueño ya está atado.',
+      courseTooFar: 'Todavía tienes que llevar el sueño hasta aquí.',
+      released: {
+        obstaculo: 'El sueño ha rozado algo y se ha soltado. Ha vuelto al inicio del tramo.',
+        giro: 'Has girado de golpe y el sueño se ha soltado. Ha vuelto al inicio del tramo.',
+        prisa: 'Ibas muy deprisa y el sueño se ha soltado. Ha vuelto al inicio del tramo.',
+        lejos: 'Te has alejado demasiado y el sueño se ha soltado. Ha vuelto al inicio del tramo.'
+      },
+      sections: [
+        { name: 'La verja', intro: 'Primer tramo: la verja. Pasa por la abertura sin girar de golpe.', done: 'Tramo de la verja superado.' },
+        { name: 'El charco', intro: 'Segundo tramo: el charco. Da un rodeo amplio para que el sueño no lo roce.', done: 'Tramo del charco superado.' },
+        { name: 'Las ramas', intro: 'Tercer tramo: las ramas. Zigzaguea despacio entre ellas.', done: 'Tramo de las ramas superado.' }
+      ],
+      look: {
+        corazon: 'El punto del corazón. Late despacio.',
+        cabeza: 'El punto de la cabeza. Brilla quieto.',
+        charco: 'Un charco hondo. El hilo no puede tocarlo.',
+        verja: 'Una verja baja. El sueño no puede atravesarla.',
+        ramas: 'Ramas secas que cuelgan. Se enganchan en todo.',
+        pedestal: 'Un pedestal donde el sueño puede descansar.'
+      },
+      courseDone: [
+        { name: 'Sepulturero', text: 'Lo has conseguido. Haz que te sigan todo el camino, chico.' },
+        { name: 'Sepulturero', text: 'Y que cuanto menos veas, más fuerte sea su brillo. Pero eso lo verás ahora.' }
+      ],
+      journalCourse: { id: 'siguen', title: 'Que te sigan', text: 'Los sueños se llevan con calma: sin giros bruscos ni prisas, y dando rodeos amplios para que no se enganchen.' },
+      newEntry: 'Nueva entrada en el diario (J)'
     }
   },
 
   texts: {
-    intro: 'Has saltado la tapia del camposanto y la verja se ha cerrado a tu espalda. Solo hay dos personas despiertas: un enterrador metido en su tumba y un niño sentado sobre una lápida.',
-    startButton: 'Entrar en el cementerio',
+    intro: 'Esta noche no vas a dormir. Un niño, un sepulturero y un cementerio lleno de sueños: así se aprende lo que es la vida.',
+    startButton: 'Empezar',
     controlsDesktop: 'WASD para moverte, ratón para mirar, clic o E para hablar o tocar. Esc suelta el ratón. P abre el menú de depuración.',
     controlsTouch: 'Joystick a la izquierda para moverte, arrastra a la derecha para mirar y pulsa Usar para hablar o tocar. Toca tres veces el cuadro de bolsillos para el menú de depuración.',
     emptyInventory: 'Bolsillos vacíos',

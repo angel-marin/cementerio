@@ -2,9 +2,9 @@
 
 Escape room en primera persona para navegador, hecho con Babylon.js. Una sorpresa basada en el vídeo corto "El sepulturero".
 
-Estado: **Fase 3 completada** (prólogo, Acto 1 y Acto 2). El prototipo original sigue como escena `prototype`, hay una escena de pruebas (`test_mechanics`) y los actos 3-7 y el epílogo son marcadores a la espera de las siguientes fases.
+Estado: **Fase 4 completada** (prólogo y actos 1 a 4). El prototipo original sigue como escena `prototype`, hay una escena de pruebas (`test_mechanics`) y los actos 5-7 y el epílogo son marcadores a la espera de las siguientes fases.
 
-Para jugar la historia desde el principio abre `?escena=prologue` (o elige el prólogo en el menú `P`). Al terminar cada acto pasa solo al siguiente.
+El juego arranca en el prólogo y, al terminar cada acto, pasa solo al siguiente. Para saltar a otra escena: `?escena=act3_brokenDreams` al final de la URL o el menú `P`. El cementerio de pruebas original sigue disponible con `?escena=prototype`. La escena de arranque se cambia en `defaultScene` (`js/config.js`).
 
 ## Cómo probarlo
 
@@ -13,7 +13,7 @@ El juego usa módulos ES, así que no se puede abrir con doble clic en `index.ht
 1. **Servidor local**, desde esta carpeta: `python3 -m http.server 8000` y abre http://localhost:8000
 2. **GitHub Pages**: sube la carpeta tal cual (sin paso de build) y activa Pages en `Settings -> Pages -> Deploy from a branch -> main / (root)`.
 
-Para abrir una escena concreta: `?escena=act3_brokenDreams` al final de la URL.
+Para abrir una escena concreta: `?escena=act3_brokenDreams` al final de la URL (por defecto arranca el prólogo).
 
 ## Controles
 
@@ -24,6 +24,7 @@ Para abrir una escena concreta: `?escena=act3_brokenDreams` al final de la URL.
 | Hablar / tocar | Clic o `E` | Botón **Usar** |
 | Linterna (desde que coges el farol) | `F` | Botón **Linterna** |
 | Diario | `J` | Botón **Diario** (arriba a la izquierda) |
+| Ir más deprisa (solo en el camino del Acto 4) | `Mayús` | no hay |
 | Menú de depuración | `P` | Tres toques sobre el cuadro de bolsillos |
 
 ## Estructura
@@ -42,8 +43,8 @@ js/core/
   state.js               actos, puzles resueltos, inventario y banderas
   ui.js                  pistas, diálogos, subtítulos, inventario, candado, pantallas
   audio.js               efectos sintéticos, música y sonido espacial (ganchos)
-js/mechanics/            flashlight.js, thread.js, followDream.js (hechas); dreamFragment.js (esqueleto, Fase 4)
-js/scenes/               prologue, act1_simple, act2_smallGrave (hechas); act3-act7 y epilogue (marcadores);
+js/mechanics/            flashlight.js, thread.js, followDream.js, dreamFragment.js, tether.js (hechas)
+js/scenes/               prologue y act1-act4 (hechas); act5-act7 y epilogue (marcadores);
                          prototype (el cementerio original), test_mechanics y _kit.js (piezas compartidas)
 assets/models/           child.glb, trees.glb, rocks.glb, landscape.glb
 assets/audio/            música y efectos (vacío por ahora)
@@ -62,6 +63,40 @@ Todos los textos de la historia (voz en off, diálogos, pistas, avisos y entrada
 
 Los parámetros del ritmo están en `RHYTHM` (`act2_smallGrave.js`): `period` (segundos por compás), `window` (margen para acertar) y `beats` (compases necesarios).
 
+
+## Lo que hay en la Fase 4
+
+- **Acto 3, "Sueños rotos":**
+  - **Puzle 4, rompecabezas de sueños:** nueve fragmentos brillantes repartidos entre las lápidas (tres por sueño: cohete, violín y balón). Sobre la lápida de cada sueño flotan tres siluetas fantasma; en cada una se coloca el fragmento que encaja. Equivocarse no cuesta nada. Cada sueño completo añade una entrada al diario.
+  - **Puzle 5, los que se alejan:** dos sueños (seis y siete años) se escapan; hay que seguirlos hasta su lápida con `followDream.js`. Si te quedas atrás, esperan.
+  - **Puzle 6, el orden de las edades:** cinco lápidas (2, 4, 5, 6 y 7 años) desordenadas frente a la cripta. Se elige una y luego otra para intercambiarlas; ordenadas de menor a mayor, la cripta se abre y lleva al Acto 4.
+- **Acto 4, "Atar los sueños":**
+  - **Puzle 7, el nudo:** llevar un hilo del corazón a la cabeza con `thread.js`, sin cruzar otros hilos, ni a sí mismo, ni los charcos. Tres niveles: un hilo atravesado, dos hilos y un charco, y un laberinto de hilos y charcos.
+  - **Puzle 8, que te sigan:** llevar un sueño atado con `tether.js` por tres tramos (la verja, el charco y las ramas). Se suelta y vuelve al inicio del tramo, sin castigo, si giras de golpe, si corres (Mayús), si te alejas demasiado o si el sueño roza un obstáculo (corta las esquinas: hay que dar rodeos amplios).
+
+Los datos de cada mapa se exportan para poder retocarlos: `LAYOUT` (Acto 3), `LEVELS` y `COURSE` (Acto 4, cada nivel con su ruta `solution` o `path` de ejemplo). Los umbrales del sueño atado están en `TETHER` (`js/mechanics/tether.js`).
+
+### Fragmentos (`dreamFragment.js`)
+
+```js
+const frag = createFragment(ctx, h, { dream: 'cohete', piece: 'punta', position: V3, onCollected });
+const pz = createDreamPuzzle(ctx, h, { dream: 'cohete', origin: V3, onPlaced, onSolved });
+```
+
+Los sueños y sus piezas están en `DREAMS`. Los fragmentos recogidos se guardan en `state.flags.fragments`, y `fragmentStatus()` da el texto de la línea de estado (`ctx.ui.setStatus(texto)`). Para añadir un sueño nuevo: una entrada en `DREAMS` y su geometría en `buildPiece`.
+
+### Sueño atado (`tether.js`)
+
+```js
+const t = createTether(ctx, h, { home: V3, solids: [rect], hazards: [rect] });
+t.tie();                     // atarlo (hay que estar cerca)
+t.setHome(V3);               // nuevo inicio de tramo
+t.rest();                    // dejarlo donde está
+t.onReleased = (motivo) => {};   // 'obstaculo' | 'giro' | 'prisa' | 'lejos'
+```
+
+`ctx.player.canRun = true` activa Mayús para correr; `ctx.player.velocity` da la velocidad real del último fotograma.
+
 ## Utilidades para los actos (contexto `ctx`)
 
 ```js
@@ -75,6 +110,7 @@ ctx.ui.rhythm.show(texto) / .update(fase, progreso) / .flash('ok') / .hide();
 ctx.useHandler = fn;                      // captura "Usar" (minijuegos); ponlo a null al terminar
 ctx.player.moveLocked = true;             // se puede mirar pero no andar
 ctx.state.addJournal({ id, title, text }) // entrada en el diario
+ctx.ui.setStatus('texto');                // línea de estado bajo el inventario ('' la oculta)
 ctx.audio.startPad('noche' | 'suave');    // música ambiente generada (sin ficheros); stopPad() la apaga
 ctx.goTo('act3_brokenDreams');            // cambia de escena con fundido
 ```
@@ -174,6 +210,6 @@ Los `.glb` se cargan con `loadModel(scene, 'fichero.glb')` desde `assets/models/
 1. Fase 1: refactor y estructura (hecha)
 2. Fase 2: mecánicas base (linterna, hilo, seguir el sueño) con una escena de pruebas (hecha)
 3. Fase 3: prólogo, acto 1 y acto 2 (hecha)
-4. Fase 4: actos 3 y 4
+4. Fase 4: actos 3 y 4 (hecha)
 5. Fase 5: actos 5, 6 y 7 y epílogo
 6. Fase 6: extras, audio y pulido
