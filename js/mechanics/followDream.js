@@ -8,6 +8,8 @@
 //   d.onWait = (esperando) => {}   // opcional: avisa al empezar y terminar la espera
 //   d.stop() / d.reset() / d.dispose()
 
+import { emitter } from '../core/audio.js';
+
 const B = window.BABYLON;
 
 export function createFollowDream(ctx, options = {}) {
@@ -32,6 +34,7 @@ export function createFollowDream(ctx, options = {}) {
   light.intensity = 0.7; light.range = o.lightRange;
   light.diffuse = B.Color3.FromHexString(o.color);
 
+  const hum = emitter({ freq: 196, vol: 0.03, pulse: 0.5 });   // zumbido suave que suena desde el sueño
   let s = 0, running = false, waiting = false, arrived = false, time = 0;
 
   function posAt(dist) {
@@ -58,7 +61,7 @@ export function createFollowDream(ctx, options = {}) {
     start() { if (!arrived) running = true; },
     stop() { running = false; },
     reset() { s = 0; arrived = false; running = false; setWaiting(false); mesh.position.copyFrom(pts[0]); mesh.setEnabled(true); },
-    dispose() { removeUpdater(); mesh.dispose(); light.dispose(); mat.dispose(); }
+    dispose() { removeUpdater(); hum.dispose(); mesh.dispose(); light.dispose(); mat.dispose(); }
   };
 
   function setWaiting(v) {
@@ -82,6 +85,7 @@ export function createFollowDream(ctx, options = {}) {
     const p = posAt(s);
     p.y += Math.sin(time * 2) * 0.05;
     mesh.position.copyFrom(p);
+    hum.setPosition(p); hum.setVolume(waiting ? (Math.sin(time * 12) > 0 ? 0.03 : 0.004) : 0.03);
     // latido normal; si espera, parpadea
     const pulse = 0.85 + Math.sin(time * 3) * 0.15;
     const blink = waiting ? (Math.sin(time * 12) > 0 ? 1 : 0.15) : 1;

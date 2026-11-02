@@ -13,6 +13,7 @@ const T = CONFIG.story.act1;
 
 export const id = 'act1_simple';
 export const title = 'Acto 1: Lo sencillo';
+export const ambient = 'interior';   // sonido de fondo (viento, interior, cripta, alba)
 export const sceneOptions = { moon: false, shadows: false, hemiIntensity: 0.16, fogDensity: 0.02, fogColor: [0.03, 0.03, 0.03] };
 
 let S = null;
@@ -195,6 +196,8 @@ export async function load(ctx) {
     fireLight.intensity = 0.85 + Math.sin(t * 9) * 0.05 + Math.random() * 0.08;
     flame.scaling.y = 1 + Math.sin(t * 11) * 0.12;
   });
+
+  K.hiddenDreams(ctx, h, id);
 
   /* ---------- Guion ---------- */
   (async function flow() {

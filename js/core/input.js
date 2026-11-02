@@ -16,6 +16,7 @@ export function createInput({ canvas, isTouch }) {
     onUse: null,
     onFlashlight: null,
     onJournal: null,
+    onMute: null,
     onDebug: null,
     onEscape: null,
     onLockChange: null,   // (locked)
@@ -59,6 +60,7 @@ export function createInput({ canvas, isTouch }) {
     if (input.enabled && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
     if (e.code === 'KeyP' && !e.repeat) { input.onDebug && input.onDebug(); return; }
     if (e.code === 'KeyJ' && !e.repeat) { input.onJournal && input.onJournal(); return; }   // también cierra el diario
+    if (e.code === 'KeyM' && !e.repeat) { input.onMute && input.onMute(); return; }
     if (e.code === 'Escape') { input.onEscape && input.onEscape(); }
     if (!input.enabled) return;
     if (e.code === 'KeyE' && !e.repeat) input.onUse && input.onUse();

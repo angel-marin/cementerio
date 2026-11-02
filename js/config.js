@@ -7,14 +7,50 @@ export const CONFIG = {
   defaultScene: 'prologue',
 
   // Guardado automático en localStorage (progreso entre sesiones).
-  persist: false,
+  persist: true,
 
   // Personalización de la sorpresa (se usará en la Fase 6).
-  hiddenDreams: { total: 18 },   // sueños escondidos por el mapa (Fase 6); en el Acto 7 desbloquean el mensaje oculto
+  // Sueños escondidos: uno por cada minuto del vídeo (18). Cada uno revela una frase; reunirlos todos desbloquea el mensaje oculto.
+  // spots: por escena, [id, x, y, z]. El id (h01...h18) decide qué frase muestra.
+  hiddenDreams: {
+    total: 18,
+    lines: [
+      'Esa noche no iba a ser una noche cualquiera.',
+      'Hoy no iba a dormir.',
+      'Hoy no tocaba juegos y a la cama.',
+      'Le habían dicho que ya no era un niño.',
+      'Era hora de aprender lo que era la vida.',
+      'Para eso, fuera al cementerio del pueblo de noche.',
+      'No iba a estar solo: iba a acompañar al sepulturero.',
+      '«Así sabría lo que es la vida». Palabras de su padre.',
+      'El sepulturero tenía fama de ser hosco y solitario.',
+      'Pero era un buen hombre.',
+      'Le gustaban las cosas sencillas.',
+      'A nadie le gusta mi trabajo, pero alguien debe hacerlo.',
+      'Lo que pongo dentro de esos ataúdes son sueños.',
+      'Hay que atarlos siempre, bien fuerte a tu corazón y a tu cabeza.',
+      'Haz que te sigan todo el camino.',
+      'Y que cuanto menos veas, más fuerte sea su brillo.',
+      'Me propuse que todos los sueños tuvieran un buen fin.',
+      'Nada permitió que acabaran en el Cementerio de los Sueños.'
+    ],
+    spots: {
+      prologue: [['h01', 2.2, 2.2, 0.5], ['h02', -3.6, 1.4, 6.0]],
+      act1_simple: [['h03', -3.2, 1.75, 0.5], ['h04', 3.1, 1.25, 2.2]],
+      act2_smallGrave: [['h05', 0.2, 0.7, 5.2], ['h06', -0.5, 0.6, -5.2]],
+      act3_brokenDreams: [['h07', 6.6, 0.9, 5.6], ['h08', -6.9, 0.8, -6.9]],
+      act4_tieDreams: [['h09', -6.4, 0.9, 6.4], ['h10', 6.4, 0.9, -6.4]],
+      act5_lessYouSee: [['h11', -6.0, 1.0, 5.2], ['h12', 6.0, 1.0, -5.8]],
+      act6_doubts: [['h13', 6.5, 0.9, 6.5], ['h14', -6.5, 0.9, -6.5]],
+      act7_gravediggerDream: [['h15', 6.4, 0.9, 4.4], ['h16', -6.4, 0.9, -6.3]],
+      epilogue: [['h17', 6.3, 1.0, -6.2], ['h18', -6.4, 1.0, 5.0]]
+    }
+  },
 
   neighbor: {
     name: '',                 // nombre del vecino para la lápida o el grafiti
-    secretMessage: '',        // mensaje final si encuentra los 18 sueños
+    secretMessage: '',        // mensaje final si encuentra los 18 sueños (si está vacío se usa uno por defecto)
+    graffiti: '{name} estuvo aquí',   // texto del grafiti con tiza; {name} se sustituye por el nombre
     videoUrl: ''              // enlace al vídeo original para los créditos
   },
 
@@ -414,6 +450,7 @@ export const CONFIG = {
         title: 'Fin',
         lines: ['La noche del enterrador.', 'Un juego basado en el vídeo corto «El sepulturero».', '«Chico, espero que cuides bien de tus sueños.»'],
         forName: (n) => 'Para ' + n + '.',
+        secretTitle: 'Final secreto',
         linkLabel: 'Ver el vídeo original',
         button: 'Volver a empezar'
       }
@@ -423,9 +460,17 @@ export const CONFIG = {
   texts: {
     intro: 'Esta noche no vas a dormir. Un niño, un sepulturero y un cementerio lleno de sueños: así se aprende lo que es la vida.',
     startButton: 'Empezar',
-    controlsDesktop: 'WASD para moverte, ratón para mirar, clic o E para hablar o tocar. Esc suelta el ratón. P abre el menú de depuración.',
-    controlsTouch: 'Joystick a la izquierda para moverte, arrastra a la derecha para mirar y pulsa Usar para hablar o tocar. Toca tres veces el cuadro de bolsillos para el menú de depuración.',
+    controlsDesktop: 'WASD para moverte, ratón para mirar, clic o E para hablar o tocar. Esc abre el menú de pausa, M silencia el sonido y J abre el diario.',
+    controlsTouch: 'Joystick a la izquierda para moverte, arrastra a la derecha para mirar y pulsa Usar para hablar o tocar. El botón Menú está arriba a la derecha.',
     emptyInventory: 'Bolsillos vacíos',
+    hidden: {
+      hint: 'Un sueño escondido',
+      found: (n, total, line) => 'Sueño escondido ' + n + '/' + total + ': «' + line + '»',
+      allFound: '¡Has reunido los 18 sueños escondidos!',
+      journalTitle: (n, total) => 'Sueños escondidos (' + n + '/' + total + ')',
+      graffitiLook: 'Alguien ha escrito aquí con tiza.'
+    },
+    rotate: 'Para jugar mejor, gira el móvil en horizontal.',
     resume: 'Haz clic para volver al juego'
   }
 };

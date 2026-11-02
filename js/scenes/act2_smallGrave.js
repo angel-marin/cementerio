@@ -14,6 +14,7 @@ const T = CONFIG.story.act2;
 
 export const id = 'act2_smallGrave';
 export const title = 'Acto 2: La tumba pequeña';
+export const ambient = 'viento';   // sonido de fondo (viento, interior, cripta, alba)
 export const sceneOptions = { moon: true, shadows: true, hemiIntensity: 0.3, fogDensity: 0.04, fogColor: [0.045, 0.045, 0.045] };
 
 // Parámetros del ritmo (ajustables)
@@ -163,6 +164,8 @@ export async function load(ctx) {
     const phase = Math.max(0, Math.min(1, 1 - (S.nextBeat - S.t) / RHYTHM.period));
     ui.rhythm.update(phase, S.progress / RHYTHM.beats);
   });
+
+  K.hiddenDreams(ctx, h, id);
 
   /* ---------- Guion ---------- */
   (async function flow() {

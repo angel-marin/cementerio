@@ -16,6 +16,7 @@ const T = CONFIG.story.act3;
 
 export const id = 'act3_brokenDreams';
 export const title = 'Acto 3: Sueños rotos';
+export const ambient = 'viento';   // sonido de fondo (viento, interior, cripta, alba)
 export const sceneOptions = { moon: true, shadows: true, hemiIntensity: 0.3, fogDensity: 0.04, fogColor: [0.045, 0.045, 0.045] };
 
 // Datos del mapa (se exportan para poder revisarlos y probarlos)
@@ -226,6 +227,8 @@ export async function load(ctx) {
     });
     if (S.cryptOpen) doorSlab.position.y += (-1.4 - doorSlab.position.y) * Math.min(1, dt * 2);
   });
+
+  K.hiddenDreams(ctx, h, id);
 
   /* ---------- Guion ---------- */
   (async function flow() {

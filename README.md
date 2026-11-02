@@ -2,7 +2,7 @@
 
 Escape room en primera persona para navegador, hecho con Babylon.js. Una sorpresa basada en el vídeo corto "El sepulturero".
 
-Estado: **Fase 5 completada**: la historia se puede jugar entera, del prólogo al epílogo. Quedan los extras, el audio y el pulido de la Fase 6. El prototipo original sigue como escena `prototype` y hay una escena de pruebas (`test_mechanics`).
+Estado: **Fase 6 completada**: la historia está entera, con los extras (18 sueños escondidos, grafiti con el nombre del vecino, mensaje oculto), sonido, menú de pausa, guardado y ajuste de calidad. El prototipo original sigue como escena `prototype` y hay una escena de pruebas (`test_mechanics`).
 
 El juego arranca en el prólogo y, al terminar cada acto, pasa solo al siguiente. Para saltar a otra escena: `?escena=act3_brokenDreams` al final de la URL o el menú `P`. El cementerio de pruebas original sigue disponible con `?escena=prototype`. La escena de arranque se cambia en `defaultScene` (`js/config.js`).
 
@@ -13,7 +13,7 @@ El juego usa módulos ES, así que no se puede abrir con doble clic en `index.ht
 1. **Servidor local**, desde esta carpeta: `python3 -m http.server 8000` y abre http://localhost:8000
 2. **GitHub Pages**: sube la carpeta tal cual (sin paso de build) y activa Pages en `Settings -> Pages -> Deploy from a branch -> main / (root)`.
 
-Para abrir una escena concreta: `?escena=act3_brokenDreams` al final de la URL (por defecto arranca el prólogo).
+Parámetros de la URL: `?escena=act3_brokenDreams` abre una escena concreta (y no usa ni pisa la partida guardada); `?calidad=baja` reduce sombras, grano y resolución para móviles lentos.
 
 ## Controles
 
@@ -26,6 +26,8 @@ Para abrir una escena concreta: `?escena=act3_brokenDreams` al final de la URL (
 | Diario | `J` | Botón **Diario** (arriba a la izquierda) |
 | Ir más deprisa (solo en el camino del Acto 4) | `Mayús` | no hay |
 | Mantener «Usar» (Acto 6) | mantener `E` o el botón del ratón | mantener el botón **Usar** |
+| Menú de pausa | `Esc` o botón **Menú** | botón **Menú** (arriba a la derecha) |
+| Silenciar el sonido | `M` | desde el menú |
 | Menú de depuración | `P` | Tres toques sobre el cuadro de bolsillos |
 
 ## Estructura
@@ -114,9 +116,9 @@ t.onReleased = (motivo) => {};   // 'obstaculo' | 'giro' | 'prisa' | 'lejos'
 
 Los datos de cada mapa se exportan: `SYMBOLS`, `SEQUENCE` y `ROOMS` (Acto 5), `HOLD` y `LAYOUT` (Acto 6), `LAYOUT` (actos 7 y epílogo).
 
-### Sueños escondidos (para la Fase 6)
+### Sueños escondidos
 
-`state.addHidden(id)` guarda un sueño escondido y `state.hiddenCount()` los cuenta. El Acto 7 ya comprueba `CONFIG.hiddenDreams.total` (18) para mostrar el mensaje oculto; falta colocar los sueños por el mapa.
+`state.addHidden(id)` guarda un sueño escondido, `state.hiddenCount()` los cuenta y `state.setJournal(entry)` crea o actualiza una entrada del diario. Más abajo, en «Lo que hay en la Fase 6», están los detalles y cómo personalizarlos.
 
 ### Novedades para los actos
 
@@ -129,6 +131,34 @@ K.skyDome(ctx, h, { dawn: true });        // cielo del amanecer, sin luna
 tether.brightness = 0.5;                  // brillo del sueño atado (0 a 1)
 ctx.ui.showCredits({ title, lines, linkLabel, linkUrl, button, onClick });
 ```
+
+
+## Lo que hay en la Fase 6
+
+- **18 sueños escondidos** (uno por cada minuto del vídeo), dos en cada escena. Son brillos pequeños que suenan suavemente desde su posición. Cada uno revela una frase del vídeo y se anota en el diario, en una entrada que se va completando («Sueños escondidos 7/18»). Los ya cogidos no reaparecen.
+- **Mensaje oculto y final secreto:** con los 18, el Acto 7 muestra un mensaje dedicado (`CONFIG.neighbor.secretMessage`) y los créditos del epílogo añaden un «Final secreto» con el mismo texto.
+- **Grafiti con el nombre del vecino** (`CONFIG.neighbor.name`): aparece escrito con tiza en una pared del prólogo, del Acto 4 y del epílogo, y en los créditos. Sin nombre, no aparece nada.
+- **Sonido sin ficheros:** viento, ambiente de interior, rumor de cripta y alba con pájaros; música de acordes lentos; pasos al andar; y **sonido espacial**: los sueños y los brillos escondidos suenan desde donde están (con auriculares se nota mejor). `M` silencia y se recuerda.
+- **Menú de pausa** (`Esc` o botón Menú): continuar, **reiniciar el acto** (no se pierde nada, así que nunca se queda un puzle bloqueado), sonido, calidad gráfica, diario y volver al inicio.
+- **Guardado automático:** se guarda al empezar cada acto. Al volver, la pantalla de inicio ofrece **Continuar** (el acto guardado, con diario, inventario y sueños escondidos) o **Nueva partida**. Con `?escena=` en la URL no se toca la partida guardada.
+- **Calidad adaptable:** si los fotogramas por segundo caen durante unos segundos, se apagan sombras, grano y brillo y se baja un poco la resolución. También se puede forzar en el menú o con `?calidad=baja`.
+- **Pulido:** pantalla de carga, aviso si el navegador no tiene WebGL, aviso para girar el móvil en horizontal.
+
+## Personalizar la sorpresa (todo en `js/config.js`)
+
+```js
+neighbor: {
+  name: 'Marta',                          // nombre para el grafiti y los créditos
+  secretMessage: 'Tu mensaje aquí.',      // mensaje oculto (vacío = uno por defecto)
+  graffiti: '{name} estuvo aquí',         // texto del grafiti
+  videoUrl: 'https://...'                 // botón «Ver el vídeo original» en los créditos
+},
+hiddenDreams: { lines: [...18 frases...], spots: { prologue: [['h01', x, y, z], ...], ... } }
+```
+
+- Las 18 frases de los sueños escondidos y sus posiciones (`spots`) se pueden cambiar. El identificador (`h01` a `h18`) decide qué frase muestra.
+- Para probar rápido el final secreto sin buscar los 18, abre la consola del navegador y escribe: `__juego.state.setFlag('hidden', Array.from({length: 18}, (_, i) => 'h' + String(i + 1).padStart(2, '0')))`, luego salta al Acto 7 con `P`.
+- Para borrar la partida guardada: **Nueva partida** en la pantalla de inicio, o `localStorage.clear()` en la consola.
 
 ## Utilidades para los actos (contexto `ctx`)
 
@@ -145,8 +175,11 @@ ctx.player.moveLocked = true;             // se puede mirar pero no andar
 ctx.state.addJournal({ id, title, text }) // entrada en el diario
 ctx.ui.setStatus('texto');                // línea de estado bajo el inventario ('' la oculta)
 ctx.audio.startPad('noche' | 'suave');    // música ambiente generada (sin ficheros); stopPad() la apaga
+ctx.audio.emitter({ freq, vol, pulse, position });   // sonido espacial: .setPosition(v3), .setVolume(v), .dispose()
 ctx.goTo('act3_brokenDreams');            // cambia de escena con fundido
 ```
+
+Cada escena puede exportar `ambient` (`'viento'`, `'interior'`, `'cripta'` o `'alba'`) para elegir su sonido de fondo. `K.hiddenDreams(ctx, h, id)` coloca los sueños escondidos de esa escena y `K.graffiti(ctx, h, { x, y, z, ry })` el grafiti.
 
 `js/scenes/_kit.js` reúne las piezas compartidas: materiales en grises, cielo con luna, muros, farolillos, lápidas, verja, el sepulturero de cuerpo entero (`buildGravedigger`, con `holdHat()` y `update()`) y los árboles y rocas del modelo.
 
@@ -245,4 +278,4 @@ Los `.glb` se cargan con `loadModel(scene, 'fichero.glb')` desde `assets/models/
 3. Fase 3: prólogo, acto 1 y acto 2 (hecha)
 4. Fase 4: actos 3 y 4 (hecha)
 5. Fase 5: actos 5, 6 y 7 y epílogo (hecha)
-6. Fase 6: extras, audio y pulido
+6. Fase 6: extras, audio y pulido (hecha)

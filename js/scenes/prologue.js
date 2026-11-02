@@ -11,6 +11,7 @@ const T = CONFIG.story.prologue;
 
 export const id = 'prologue';
 export const title = 'Prólogo: Hoy no iba a dormir';
+export const ambient = 'viento';   // sonido de fondo (viento, interior, cripta, alba)
 export const sceneOptions = { moon: true, shadows: false, hemiIntensity: 0.2, fogDensity: 0.03, fogColor: [0.04, 0.04, 0.045] };
 
 let S = null;
@@ -127,6 +128,7 @@ export async function load(ctx) {
     player.addObstacle([x - 3.1, x + 3.1, z - 3.1, z + 3.1]);
   });
   K.lantern(ctx, h, M, -2.3, 9); K.lantern(ctx, h, M, 2.3, 21);
+  K.graffiti(ctx, h, { x: -3.97, y: 1.3, z: 12.0, ry: -Math.PI / 2 });   // si hay nombre del vecino en config.js
 
   // Puerta del cementerio al final de la calle
   const gate = K.ironGate(ctx, h, M, 0, 33.5, 3);
@@ -140,6 +142,8 @@ export async function load(ctx) {
     doorAngle += (doorTarget - doorAngle) * Math.min(1, dt * 3);
     doorPivot.rotation.y = doorAngle;
   });
+
+  K.hiddenDreams(ctx, h, id);
 
   /* ---------- Guion: voz en off, tutorial y camino ---------- */
   const wrap = (a) => { while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return a; };

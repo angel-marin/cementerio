@@ -15,6 +15,7 @@ const T = CONFIG.story.act4;
 
 export const id = 'act4_tieDreams';
 export const title = 'Acto 4: Atar los sueños';
+export const ambient = 'viento';   // sonido de fondo (viento, interior, cripta, alba)
 export const sceneOptions = { moon: true, shadows: false, hemiIntensity: 0.3, fogDensity: 0.04, fogColor: [0.045, 0.045, 0.045] };
 
 // Todo en [x, z]; los rectángulos son [minX, maxX, minZ, maxZ]. "solution" es una ruta que se puede recorrer (la usan las pruebas).
@@ -81,6 +82,7 @@ export async function load(ctx) {
   box(0.4, 2.8, 16.4, -8.2, 1.4, 0, M.wall); box(0.4, 2.8, 16.4, 8.2, 1.4, 0, M.wall);
   box(16.4, 2.8, 0.4, 0, 1.4, -8.2, M.wall); box(16.4, 2.8, 0.4, 0, 1.4, 8.2, M.wall);
   K.lantern(ctx, h, M, -7.0, 7.0); K.lantern(ctx, h, M, 7.0, -7.0);
+  K.graffiti(ctx, h, { x: 3.0, y: 1.6, z: -7.98, ry: Math.PI });
   K.nature(ctx, h, M, { far: [['tree.005', -13, 8, 0.55, 0.3], ['tree', 12, 9, 1.3, 1.1], ['tree', -12, -9, 1.2, 2.4], ['tree', 14, -8, 1.1, 1.7]] });
 
   const digger = K.buildGravedigger(ctx, h, M, { full: true });
@@ -264,6 +266,8 @@ export async function load(ctx) {
     await ui.dialogue(T.courseDone);
     ctx.goTo('act5_lessYouSee');
   }
+
+  K.hiddenDreams(ctx, h, id);
 
   /* ---------- Bucle y guion ---------- */
   ctx.addUpdater((dt) => digger.update(dt));

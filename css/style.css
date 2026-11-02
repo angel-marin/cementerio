@@ -111,3 +111,10 @@ button{font:inherit;color:inherit}
 #status{position:absolute;left:calc(14px + env(safe-area-inset-left,0px));top:calc(104px + env(safe-area-inset-top,0px));max-width:min(70vw,360px);
   padding:6px 12px;border-radius:6px;background:var(--panel);border:1px solid var(--line);font-size:15px;line-height:1.35;color:var(--ink)}
 #status[hidden]{display:none}
+
+#menuBtn{position:absolute;right:calc(14px + env(safe-area-inset-right,0px));top:calc(14px + env(safe-area-inset-top,0px));pointer-events:auto;
+  padding:8px 14px;border-radius:6px;background:var(--panel);border:1px solid var(--line);font-size:16px;cursor:pointer}
+#menuBtn[hidden]{display:none}
+.entry p{white-space:pre-line}
+.card .list .btn{width:100%}
+.card .note{margin:6px 0 0;color:var(--dim);font-size:15px}

@@ -13,6 +13,7 @@ const T = CONFIG.story.epilogue;
 
 export const id = 'epilogue';
 export const title = 'Epílogo: Cumplió su palabra';
+export const ambient = 'alba';   // sonido de fondo (viento, interior, cripta, alba)
 export const sceneOptions = { moon: true, shadows: true, hemiIntensity: 0.55, fogDensity: 0.02, fogColor: [0.52, 0.52, 0.54], clear: [0.5, 0.5, 0.52] };
 
 export const LAYOUT = { start: [0, -6.2], gate: [0, 6.6], standX: 2.4, standZ0: -4.2, standStep: 1.35, bench: [-4.6, 2.2] };
@@ -45,6 +46,7 @@ export async function load(ctx) {
   [[-5.4, -3.0, 0.9], [-5.6, -0.2, 0.8], [5.8, 2.6, 0.9], [-3.4, 4.8, 1.0], [4.4, 5.0, 0.8]].forEach((t) => K.tomb(ctx, h, M, t[0], t[1], t[2], T.emptyPlaque));
   K.nature(ctx, h, M, { far: [['tree.005', -13, 8, 0.55, 0.3], ['tree', 12, 9, 1.3, 1.1], ['tree', -12, -9, 1.2, 2.4], ['tree', 14, -8, 1.1, 1.7]] });
   K.lantern(ctx, h, M, -6.2, -6.0, { light: false });
+  K.graffiti(ctx, h, { x: 7.98, y: 1.5, z: 3.0, ry: Math.PI / 2 });
 
   // El camino de los recuerdos
   const list = achievementsToShow();
@@ -106,12 +108,17 @@ export async function load(ctx) {
     game.solvePuzzle('epilogo');
     const lines = [...T.credits.lines];
     if (CONFIG.neighbor.name) lines.unshift(T.credits.forName(CONFIG.neighbor.name));
+    // Final secreto: con los 18 sueños escondidos, un mensaje dedicado (editable en config.js)
+    const secret = game.hiddenCount() >= CONFIG.hiddenDreams.total;
+    if (secret) lines.push(T.credits.secretTitle, CONFIG.neighbor.secretMessage || CONFIG.story.act7.secretDefault);
     ui.showCredits({
       title: T.credits.title, lines,
       linkLabel: T.credits.linkLabel, linkUrl: CONFIG.neighbor.videoUrl || null,
       button: T.credits.button, onClick: () => location.reload()
     });
   }
+
+  K.hiddenDreams(ctx, h, id);
 
   /* ---------- Guion ---------- */
   (async function flow() {

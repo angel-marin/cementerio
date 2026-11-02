@@ -10,6 +10,7 @@ const B = window.BABYLON;
 
 export const id = 'prototype';
 export const title = 'Cementerio (prototipo original)';
+export const ambient = 'viento';   // sonido de fondo (viento, interior, cripta, alba)
 export const sceneOptions = {};
 
 let S = null;   // estado interno de la escena

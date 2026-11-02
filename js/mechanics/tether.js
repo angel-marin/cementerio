@@ -13,6 +13,8 @@
 //   t.onTied = () => {};
 // Los rectángulos son [minX, maxX, minZ, maxZ].
 
+import { emitter } from '../core/audio.js';
+
 const B = window.BABYLON;
 
 export const TETHER = {
@@ -47,6 +49,7 @@ export function createTether(ctx, h, options = {}) {
   ropeMat.disableLighting = true; ropeMat.emissiveColor = new B.Color3(0.85, 0.85, 0.9);
   let rope = null;
 
+  const hum = emitter({ freq: 262, vol: 0.025, pulse: 0.4 });   // zumbido suave desde el sueño atado
   let state = 'idle';           // idle | tied | returning
   let brightness = 1;
   const pos = home.clone(); pos.y = 1.2;
@@ -91,7 +94,7 @@ export function createTether(ctx, h, options = {}) {
     // Deja el sueño donde está (final del tramo) y lo desata.
     rest() { state = 'idle'; dropRope(); vel.set(0, 0, 0); },
 
-    dispose() { removeUpdater(); dropRope(); mesh.dispose(); light.dispose(); mat.dispose(); ropeMat.dispose(); }
+    dispose() { removeUpdater(); hum.dispose(); dropRope(); mesh.dispose(); light.dispose(); mat.dispose(); ropeMat.dispose(); }
   };
 
   function dropRope() { if (rope) { rope.dispose(); rope = null; } }
@@ -154,6 +157,7 @@ export function createTether(ctx, h, options = {}) {
     mat.emissiveColor = new B.Color3(pulse, pulse, pulse);
     light.intensity = 0.6 * (0.1 + 0.9 * brightness);
     mesh.position.copyFrom(pos);
+    hum.setPosition(pos); hum.setVolume(0.025 * (0.15 + 0.85 * brightness));
   }
 
   function afterRelease() { mesh.position.copyFrom(pos); }

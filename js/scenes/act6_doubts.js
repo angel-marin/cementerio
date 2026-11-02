@@ -18,6 +18,7 @@ const T4 = CONFIG.story.act4;
 
 export const id = 'act6_doubts';
 export const title = 'Acto 6: Las dudas';
+export const ambient = 'viento';   // sonido de fondo (viento, interior, cripta, alba)
 export const sceneOptions = { moon: true, shadows: false, hemiIntensity: 0.22, fogDensity: 0.05, fogColor: [0.04, 0.04, 0.045] };
 
 // Parámetros del puzle 11 (se pueden retocar)
@@ -284,6 +285,8 @@ export async function load(ctx) {
       if (Math.hypot(player.position.x - p1[0], player.position.z - p1[1]) < 1.0) legDone(0);
     }
   });
+
+  K.hiddenDreams(ctx, h, id);
 
   /* ---------- Guion ---------- */
   (async function flow() {

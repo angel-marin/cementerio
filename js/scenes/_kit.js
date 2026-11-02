@@ -2,6 +2,9 @@
 // Los actos las reutilizan para que todo tenga el mismo aspecto: grises, grano y piedra áspera.
 import { loadModel } from '../core/helpers.js';
 import { isTouch } from '../core/engine.js';
+import * as game from '../core/state.js';
+import { sfx, emitter } from '../core/audio.js';
+import { CONFIG } from '../config.js';
 
 const B = window.BABYLON;
 
@@ -267,4 +270,68 @@ export function orbTrail(ctx, h, fl, points, { spacing = 1.2, y = 1.0, size = 0.
     carry = len - (d - spacing);
   }
   return out;
+}
+
+/* ---------- Sueños escondidos (extra) ---------- */
+// Pequeños brillos repartidos por el mapa. Cada uno revela una frase del vídeo y suena suave desde su posición.
+export function hiddenDreams(ctx, h, sceneId, { parent = null } = {}) {
+  const spots = (CONFIG.hiddenDreams.spots[sceneId] || []);
+  const found = game.state.flags.hidden || [];
+  const txt = CONFIG.texts.hidden;
+  const mat = new B.StandardMaterial('hiddenMat', ctx.scene);
+  mat.disableLighting = true; mat.emissiveColor = new B.Color3(0.85, 0.9, 1);
+  const orbs = [];
+  spots.forEach(([id, x, y, z], i) => {
+    if (found.includes(id)) return;
+    const m = h.MB.CreateSphere('hiddenDream', { diameter: 0.2, segments: 10 }, ctx.scene);
+    m.position.set(x, y, z); m.material = mat; m.isPickable = false; if (parent) m.parent = parent;
+    const hit = h.MB.CreateSphere('hiddenHit', { diameter: 0.9, segments: 6 }, ctx.scene);
+    hit.parent = m; hit.visibility = 0; hit.isPickable = true;
+    const em = emitter({ freq: 880 + i * 30, vol: 0.012, pulse: 0.8, position: new B.Vector3(x, y, z) });
+    let t = i * 1.7;
+    const off = ctx.addUpdater((dt) => {
+      t += dt; m.scaling.setAll(1 + Math.sin(t * 3) * 0.18);
+      em.setVolume(m.isEnabled() ? 0.012 : 0);
+    });
+    ctx.interaction.add([m, hit], {
+      hint: () => txt.hint,
+      onUse: () => {
+        if (!game.addHidden(id)) return;
+        const n = game.hiddenCount(), total = CONFIG.hiddenDreams.total, lines = CONFIG.hiddenDreams.lines;
+        const ids = (game.state.flags.hidden || []).slice().sort();
+        game.setJournal({ id: 'escondidos', title: txt.journalTitle(n, total), text: ids.map((k) => lines[parseInt(k.slice(1), 10) - 1]).join('\n') });
+        sfx.chime(n); em.dispose(); off();
+        ctx.ui.toast(txt.found(n, total, lines[parseInt(id.slice(1), 10) - 1]), 6000);
+        if (n >= total) ctx.ui.narrate(txt.allFound, 7000);
+        m.dispose();
+      }
+    });
+    orbs.push({ id, mesh: m });
+  });
+  return orbs;
+}
+
+/* ---------- Grafiti con el nombre del vecino (extra) ---------- */
+// Solo aparece si CONFIG.neighbor.name no está vacío. ry: giro para que mire hacia dentro (−π/2 mira a +x, π/2 a −x, π a +z, 0 a −z).
+export function graffiti(ctx, h, { x, y, z, ry = 0, width = 1.8 }) {
+  const name = CONFIG.neighbor.name;
+  if (!name) return null;
+  const text = (CONFIG.neighbor.graffiti || '{name} estuvo aquí').replace('{name}', name);
+  const tex = h.dtex(512, 128, (c, w, hh) => {
+    let size = 54;
+    c.font = size + 'px "Special Elite", cursive';
+    const meas = c.measureText ? c.measureText(text) : null;
+    const mw = meas && typeof meas.width === 'number' ? meas.width : NaN;
+    if (Number.isFinite(mw) && mw > w - 40) { size = Math.max(22, size * (w - 40) / mw); c.font = size + 'px "Special Elite", cursive'; }
+    c.fillStyle = 'rgba(240,240,240,0.92)'; c.textAlign = 'center';
+    c.save(); c.translate(w / 2, hh / 2 + 14); c.rotate(-0.04); c.fillText(text, 0, 0); c.restore();
+    c.strokeStyle = 'rgba(240,240,240,0.8)'; c.lineWidth = 3; c.beginPath(); c.moveTo(60, hh - 22); c.lineTo(w - 60, hh - 26); c.stroke();
+  });
+  tex.hasAlpha = true;
+  const m = new B.StandardMaterial('graffitiMat', ctx.scene);
+  m.diffuseTexture = tex; m.useAlphaFromDiffuseTexture = true; m.emissiveColor = new B.Color3(0.7, 0.7, 0.7); m.backFaceCulling = false; m.specularColor = new B.Color3(0, 0, 0);
+  const plane = h.MB.CreatePlane('graffiti', { width, height: width * 0.25 }, ctx.scene);
+  plane.position.set(x, y, z); plane.rotation.y = ry; plane.material = m;
+  ctx.interaction.add(plane, { text: CONFIG.texts.hidden.graffitiLook });
+  return plane;
 }

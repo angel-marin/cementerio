@@ -245,14 +245,43 @@ export function createUI() {
     },
 
     /* --- Pantallas --- */
-    showStart({ title, text, controls, button, onStart }) {
+    // buttons: [{ label, primary, onClick }]. Sin buttons, un único botón (button / onStart).
+    showStart({ title, text, controls, button, onStart, buttons }) {
       startEl.textContent = '';
-      const btn = el('button', button, 'btn'); btn.type = 'button';
-      const row = el('div', '', 'row'); row.appendChild(btn);
-      startEl.appendChild(ui.card(el('h1', title), el('p', text), el('p', controls, 'small'), row));
+      const list = buttons || [{ label: button, primary: true, onClick: onStart }];
+      const row = el('div', '', 'row');
+      list.forEach((b) => {
+        const btn = el('button', b.label, 'btn' + (b.primary ? '' : ' ghost')); btn.type = 'button';
+        btn.onclick = () => { startEl.classList.remove('show'); b.onClick && b.onClick(); };
+        row.appendChild(btn);
+      });
+      const kids = [el('h1', title), el('p', text), el('p', controls, 'small'), row];
+      startEl.appendChild(ui.card(...kids));
       startEl.classList.add('show');
-      btn.onclick = () => { startEl.classList.remove('show'); onStart && onStart(); };
     },
+
+    // Mensaje fijo en la pantalla de inicio (por ejemplo, un error).
+    showStartMessage(title, text) {
+      startEl.textContent = '';
+      startEl.appendChild(ui.card(el('h1', title), el('p', text)));
+      startEl.classList.add('show');
+    },
+
+    // Menú de pausa: buttons = [{ label, onClick, ghost }]. Se cierra con Escape o con "Continuar".
+    openMenu({ title = 'Pausa', buttons, note }) {
+      const list = el('div', '', 'list');
+      buttons.forEach((b) => {
+        const btn = el('button', b.label, 'btn' + (b.ghost === false ? '' : ' ghost')); btn.type = 'button';
+        btn.onclick = () => b.onClick && b.onClick();
+        list.appendChild(btn);
+      });
+      const kids = [el('h2', title), list];
+      if (note) kids.push(el('p', note, 'note'));
+      ui.openModal(ui.card(...kids));
+      ui.modalKind = 'menu';
+    },
+
+    showMenuButton(v) { $('menuBtn').hidden = !v; },
 
     // Créditos finales: título, líneas de texto y, si hay enlace, un botón para abrirlo.
     showCredits({ title, lines, linkLabel, linkUrl, button, onClick }) {

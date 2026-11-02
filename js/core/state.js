@@ -39,6 +39,13 @@ export function addHidden(id) {
   setFlag('hidden', [...h, id]); return true;
 }
 
+// Crea o actualiza una entrada del diario (por ejemplo, la lista de sueños escondidos).
+export function setJournal(entry) {
+  const i = state.journal.findIndex((e) => e.id === entry.id);
+  if (i >= 0) state.journal[i] = entry; else state.journal.push(entry);
+  changed();
+}
+
 export function addJournal(entry) {
   if (state.journal.some((e) => e.id === entry.id)) return false;
   state.journal.push(entry); changed(); return true;
@@ -79,4 +86,10 @@ export function load() {
 
 export function clearSave() { try { localStorage.removeItem(KEY); } catch (_) {} }
 
-export function enablePersistence(on) { persist = !!on; if (persist) save(); }
+// No guarda al activarlo: así no se pisa una partida guardada antes de que el jugador elija continuar.
+export function enablePersistence(on) { persist = !!on; }
+
+// Lee la partida guardada sin aplicarla.
+export function peekSave() {
+  try { const raw = localStorage.getItem(KEY); return raw ? JSON.parse(raw) : null; } catch (_) { return null; }
+}

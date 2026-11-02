@@ -13,6 +13,7 @@ const T = CONFIG.story.act5;
 
 export const id = 'act5_lessYouSee';
 export const title = 'Acto 5: Cuanto menos veas';
+export const ambient = 'cripta';   // sonido de fondo (viento, interior, cripta, alba)
 export const sceneOptions = { moon: false, shadows: false, hemiIntensity: 0.012, fogDensity: 0.07, fogColor: [0.004, 0.004, 0.004], clear: [0, 0, 0] };
 
 // Símbolos de la sala y orden que hay que repetir (índices en SYMBOLS)
@@ -198,6 +199,8 @@ export async function load(ctx) {
     if (S.room >= 0) return;
     if (!S.hallSolved) ui.narrate(on ? T.tipOn : (S.progress ? T.tipRepeat : T.tipOff), 7000);
   };
+
+  K.hiddenDreams(ctx, h, id, { parent: group });
 
   /* ---------- Guion ---------- */
   (async function flow() {

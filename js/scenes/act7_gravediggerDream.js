@@ -13,6 +13,7 @@ const T = CONFIG.story.act7;
 
 export const id = 'act7_gravediggerDream';
 export const title = 'Acto 7: El sueño del sepulturero';
+export const ambient = 'alba';   // sonido de fondo (viento, interior, cripta, alba)
 export const sceneOptions = { moon: true, shadows: true, hemiIntensity: 0.5, fogDensity: 0.025, fogColor: [0.5, 0.5, 0.52], clear: [0.45, 0.45, 0.47] };
 
 export const LAYOUT = {
@@ -130,6 +131,8 @@ export async function load(ctx) {
     }
     if (S.brighten && ctx.hemi.intensity < 0.8) ctx.hemi.intensity += dt * 0.05;
   });
+
+  K.hiddenDreams(ctx, h, id);
 
   /* ---------- Guion ---------- */
   refresh();
