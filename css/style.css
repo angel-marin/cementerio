@@ -82,3 +82,28 @@ button{font:inherit;color:inherit}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
 .wheels.shake{animation:shake .28s}
 @media (prefers-reduced-motion:reduce){.wheels.shake{animation:none}#cross,#hint,#toast,#subs{transition:none}}
+
+/* Diálogos, ritmo, diario y fundidos */
+#dialog{position:absolute;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(92vw,640px);
+  padding:14px 18px;border-radius:8px;background:var(--panel);border:1px solid var(--line);line-height:1.45;font-size:19px;display:none;pointer-events:auto}
+#dialog.show{display:block}
+#dialog b{display:block;margin-bottom:4px;color:#fff;font-family:'Special Elite','Courier New',monospace;font-weight:400;font-size:17px}
+#dialog small{display:block;margin-top:8px;color:var(--dim);font-size:14px}
+#journalBtn{position:absolute;left:calc(14px + env(safe-area-inset-left,0px));top:calc(62px + env(safe-area-inset-top,0px));pointer-events:auto;
+  padding:6px 12px;border-radius:6px;background:var(--panel);border:1px solid var(--line);font-size:16px;cursor:pointer}
+#journalBtn[hidden]{display:none}
+#rhythm{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);width:min(80vw,320px);text-align:center;display:none}
+#rhythm.show{display:block}
+#rhythm .rh-text{margin-bottom:12px;padding:6px 12px;border-radius:6px;background:var(--panel);font-size:17px}
+#rhythm .rh-stage{position:relative;width:150px;height:150px;margin:0 auto}
+#rhythm .rh-target{position:absolute;inset:35px;border:3px solid rgba(255,255,255,.9);border-radius:50%}
+#rhythm .rh-ring{position:absolute;inset:35px;border:3px solid rgba(255,255,255,.55);border-radius:50%;transform:scale(2.2)}
+#rhythm.ok .rh-target{background:rgba(255,255,255,.35)}
+#rhythm.soft .rh-target{border-color:rgba(255,255,255,.35)}
+#rhythm .rh-bar{height:6px;margin:14px auto 0;width:180px;border-radius:3px;background:rgba(255,255,255,.18);overflow:hidden}
+#rhythm .rh-bar i{display:block;height:100%;width:0;background:#e8e8e8}
+#fade{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:8;transition:opacity .5s}
+.entry{margin:0 0 14px}
+.entry h3{margin:0 0 4px;font-family:'Special Elite','Courier New',monospace;font-weight:400;font-size:18px;color:#fff}
+.entry p{margin:0;line-height:1.45}
+@media (prefers-reduced-motion:reduce){#fade{transition:none}}

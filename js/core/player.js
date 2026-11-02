@@ -9,6 +9,7 @@ export function createPlayer({ camera, input }) {
     pitch: 0,
     speed: 2.5,
     eye: 1.65,
+    moveLocked: false,       // true = puede mirar pero no andar (minijuegos)
     frozen: true,            // true = no se mueve ni mira (menús, diálogos modales, pantalla de inicio)
     bounds: { minX: -5.4, maxX: 5.4, minZ: -5.4, maxZ: 5.4 },
     obstacles: [],           // [minX, maxX, minZ, maxZ]
@@ -17,6 +18,7 @@ export function createPlayer({ camera, input }) {
 
     setBounds(b) { player.bounds = { ...player.bounds, ...b }; },
     addObstacle(rect) { player.obstacles.push(rect); },
+    removeObstacle(rect) { const i = player.obstacles.indexOf(rect); if (i >= 0) player.obstacles.splice(i, 1); },
     clearObstacles() { player.obstacles.length = 0; },
 
     teleport(x, z, yaw = 0, pitch = 0) {
@@ -43,7 +45,7 @@ export function createPlayer({ camera, input }) {
     },
 
     update(dt) {
-      if (!player.frozen) {
+      if (!player.frozen && !player.moveLocked) {
         const m = input.getMove();
         const len = Math.hypot(m.x, m.y);
         if (len > 0.05) {

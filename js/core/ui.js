@@ -1,17 +1,32 @@
 // Interfaz: pistas, avisos, diálogos, subtítulos, inventario, ventanas y pantallas.
 import { CONFIG } from '../config.js';
 import { sfx } from './audio.js';
+import { isTouch } from './engine.js';
 
 export function createUI() {
   const $ = (id) => document.getElementById(id);
   const hintEl = $('hint'), crossEl = $('cross'), toastEl = $('toast'), subsEl = $('subs');
   const invEl = $('inv'), invText = $('invText'), resumeEl = $('resume');
   const startEl = $('start'), endEl = $('end'), modalEl = $('modal'), debugEl = $('debug');
+  const dialogEl = $('dialog'), fadeEl = $('fade'), journalBtn = $('journalBtn'), rhythmEl = $('rhythm');
+  let advanceResolver = null;
+
+  // Espera a que el jugador avance (E, clic o Usar) o a que pase el tiempo.
+  function waitAdvance(ms) {
+    return new Promise((resolve) => {
+      const done = () => { clearTimeout(t); if (advanceResolver === done) advanceResolver = null; resolve(); };
+      const t = setTimeout(done, ms);
+      advanceResolver = done;
+    });
+  }
 
   let toastTimer = null, subsTimer = null, hintText = null;
 
   const ui = {
     modalOpen: false,
+    modalLocked: false,      // true = no se cierra con Escape (elecciones)
+    modalKind: null,
+    dialogueOpen: false,
     onModalChange: null,    // (open)
 
     /* --- HUD --- */
@@ -71,7 +86,7 @@ export function createUI() {
       if (!ui.modalOpen) return;
       modalEl.classList.remove('show');
       modalEl.textContent = '';
-      ui.modalOpen = false;
+      ui.modalOpen = false; ui.modalLocked = false; ui.modalKind = null;
       ui.onModalChange && ui.onModalChange(false);
     },
 
@@ -117,6 +132,107 @@ export function createUI() {
         }
       };
       ui.openModal(ui.card(h2, wheels, msg, row));
+    },
+
+    /* --- Diálogos con avance (Usar / E / clic) --- */
+    advance() { if (advanceResolver) { advanceResolver(); return true; } return false; },
+
+    async dialogue(lines) {
+      ui.dialogueOpen = true;
+      ui.onModalChange && ui.onModalChange(ui.modalOpen);
+      for (const l of lines) {
+        dialogEl.textContent = '';
+        if (l.name) { const b = document.createElement('b'); b.textContent = l.name; dialogEl.appendChild(b); }
+        dialogEl.appendChild(document.createTextNode(l.text));
+        const sm = document.createElement('small');
+        sm.textContent = isTouch ? 'Toca Usar para continuar' : 'Pulsa E o haz clic para continuar';
+        dialogEl.appendChild(sm);
+        dialogEl.classList.add('show');
+        sfx.talk();
+        await waitAdvance(Math.max(3200, l.text.length * 75));
+      }
+      dialogEl.classList.remove('show');
+      ui.dialogueOpen = false;
+      ui.onModalChange && ui.onModalChange(ui.modalOpen);
+    },
+
+    // Voz en off con subtítulos, una línea tras otra.
+    async narrateAll(lines) {
+      for (const text of lines) {
+        ui.narrate(text, 60000);
+        await waitAdvance(Math.max(2600, text.length * 65));
+      }
+      clearTimeout(subsTimer);
+      subsEl.classList.remove('show');
+    },
+
+    clearNarration() { clearTimeout(subsTimer); subsEl.classList.remove('show'); },
+
+    // Pregunta con varias opciones. Devuelve el id de la elegida.
+    choose({ name, text, options }) {
+      return new Promise((resolve) => {
+        const list = el('div', '', 'list');
+        options.forEach((o) => {
+          const b = el('button', o.label, 'btn ghost'); b.type = 'button';
+          if (o.disabled) b.disabled = true;
+          b.onclick = () => { ui.closeModal(); resolve(o.id); };
+          list.appendChild(b);
+        });
+        const kids = [];
+        if (name) kids.push(el('h2', name));
+        kids.push(el('p', text), list);
+        ui.openModal(ui.card(...kids));
+        ui.modalLocked = true;
+      });
+    },
+
+    fade(to, ms = 500) {
+      fadeEl.style.transition = 'opacity ' + ms + 'ms';
+      fadeEl.style.opacity = String(to);
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    },
+
+    /* --- Diario --- */
+    setJournalCount(n) { journalBtn.hidden = n === 0; journalBtn.textContent = 'Diario (' + n + ')'; },
+
+    openJournal(entries) {
+      const wrap = el('div');
+      if (!entries.length) wrap.appendChild(el('p', 'Todavía no has anotado nada.', 'small'));
+      entries.forEach((e) => {
+        const d = el('div', '', 'entry');
+        d.append(el('h3', e.title), el('p', e.text));
+        wrap.appendChild(d);
+      });
+      const close = el('button', 'Cerrar', 'btn'); close.type = 'button';
+      close.onclick = () => ui.closeModal();
+      ui.openModal(ui.card(el('h2', 'Diario'), wrap, close));
+      ui.modalKind = 'journal';
+    },
+
+    /* --- Anillo de ritmo --- */
+    rhythm: {
+      show(text) { rhythmEl.classList.add('show'); rhythmEl.querySelector('.rh-text').textContent = text; ui.rhythm.update(0, 0); },
+      hide() { rhythmEl.classList.remove('show', 'ok', 'soft'); },
+      // phase: 0..1 (1 = justo en el compás); progress: 0..1
+      update(phase, progress) {
+        rhythmEl.querySelector('.rh-ring').style.transform = 'scale(' + (2.2 - 1.2 * Math.min(1, Math.max(0, phase))) + ')';
+        rhythmEl.querySelector('.rh-bar i').style.width = Math.round(progress * 100) + '%';
+      },
+      flash(kind) {
+        rhythmEl.classList.add(kind);
+        setTimeout(() => rhythmEl.classList.remove(kind), 260);
+      }
+    },
+
+    // Limpia lo que queda de la escena anterior.
+    reset() {
+      advanceResolver = null;
+      dialogEl.classList.remove('show');
+      ui.dialogueOpen = false;
+      clearTimeout(subsTimer); subsEl.classList.remove('show');
+      clearTimeout(toastTimer); toastEl.classList.remove('show');
+      ui.rhythm.hide();
+      if (ui.modalOpen) ui.closeModal();
     },
 
     /* --- Pantallas --- */

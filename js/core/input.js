@@ -14,6 +14,7 @@ export function createInput({ canvas, isTouch }) {
     onLook: null,         // (dyaw, dpitch) en radianes
     onUse: null,
     onFlashlight: null,
+    onJournal: null,
     onDebug: null,
     onEscape: null,
     onLockChange: null,   // (locked)
@@ -53,6 +54,7 @@ export function createInput({ canvas, isTouch }) {
   window.addEventListener('keydown', (e) => {
     if (input.enabled && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
     if (e.code === 'KeyP' && !e.repeat) { input.onDebug && input.onDebug(); return; }
+    if (e.code === 'KeyJ' && !e.repeat) { input.onJournal && input.onJournal(); return; }   // también cierra el diario
     if (e.code === 'Escape') { input.onEscape && input.onEscape(); }
     if (!input.enabled) return;
     if (e.code === 'KeyE' && !e.repeat) input.onUse && input.onUse();

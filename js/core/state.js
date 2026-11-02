@@ -5,7 +5,8 @@ export const state = {
   act: 'prototype',
   solvedPuzzles: new Set(),
   inventory: [],
-  flags: {}
+  flags: {},
+  journal: []          // { id, title, text }
 };
 
 let persist = false;
@@ -30,18 +31,25 @@ export function hasItem(id) { return state.inventory.includes(id); }
 export function solvePuzzle(id) { if (!state.solvedPuzzles.has(id)) { state.solvedPuzzles.add(id); changed(); } }
 export function isSolved(id) { return state.solvedPuzzles.has(id); }
 
+export function addJournal(entry) {
+  if (state.journal.some((e) => e.id === entry.id)) return false;
+  state.journal.push(entry); changed(); return true;
+}
+export function hasJournal(id) { return state.journal.some((e) => e.id === id); }
+
 export function reset() {
   state.act = 'prototype';
   state.solvedPuzzles = new Set();
   state.inventory = [];
   state.flags = {};
+  state.journal = [];
   changed();
 }
 
 export function save() {
   try {
     localStorage.setItem(KEY, JSON.stringify({
-      act: state.act, solved: [...state.solvedPuzzles], inventory: state.inventory, flags: state.flags
+      act: state.act, solved: [...state.solvedPuzzles], inventory: state.inventory, flags: state.flags, journal: state.journal
     }));
   } catch (_) { /* sin almacenamiento disponible */ }
 }
@@ -55,6 +63,7 @@ export function load() {
     state.solvedPuzzles = new Set(d.solved || []);
     state.inventory = d.inventory || [];
     state.flags = d.flags || {};
+    state.journal = d.journal || [];
     listeners.forEach((fn) => fn(state));
     return true;
   } catch (_) { return false; }

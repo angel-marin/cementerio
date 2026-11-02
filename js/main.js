@@ -37,13 +37,15 @@ let ctx = null;         // contexto que reciben las escenas
 let loading = false;
 
 if (CONFIG.persist) { state.enablePersistence(true); state.load(); }
-state.subscribe((s) => ui.renderInventory(s.inventory));
+state.subscribe((s) => { ui.renderInventory(s.inventory); ui.setJournalCount(s.journal.length); });
 ui.renderInventory(state.state.inventory);
+ui.setJournalCount(state.state.journal.length);
+const startWaiters = [];
 
 function syncBlocked() {
-  const blocked = !game.started || ui.modalOpen || ui.isDebugOpen();
-  input.setEnabled(game.started && !blocked);
-  if (ctx) ctx.player.frozen = blocked;
+  const modal = ui.modalOpen || ui.isDebugOpen();
+  input.setEnabled(game.started && !modal);
+  if (ctx) ctx.player.frozen = !game.started || modal || ui.dialogueOpen;
   syncResume();
 }
 function syncResume() {
@@ -59,6 +61,9 @@ async function goTo(id) {
   if (!mod || loading) return;
   loading = true;
   try {
+    if (current && game.started) await ui.fade(1, 400);
+    ui.reset();
+    audio.stopPad(0.4);
     if (current) {
       try { current.unload && current.unload(ctx); } catch (err) { console.error(err); }
       ctx.scene.dispose();
@@ -68,10 +73,19 @@ async function goTo(id) {
     const interaction = createInteraction({ scene: base.scene, player, ui });
     const updaters = [];
     const addUpdater = (fn) => { updaters.push(fn); return () => { const i = updaters.indexOf(fn); if (i >= 0) updaters.splice(i, 1); }; };
-    ctx = { ...base, engine, canvas, input, ui, audio, state, player, interaction, game, isTouch, goTo, updaters, addUpdater };
+    const waitUntil = (cond) => new Promise((res) => {
+      if (cond()) { res(); return; }
+      const off = addUpdater(() => { if (cond()) { off(); res(); } });
+    });
+    const wait = (seconds) => new Promise((res) => {
+      let t = 0;
+      const off = addUpdater((dt) => { t += dt; if (t >= seconds) { off(); res(); } });
+    });
+    const whenStarted = () => (game.started ? Promise.resolve() : new Promise((res) => startWaiters.push(res)));
+    ctx = { ...base, engine, canvas, input, ui, audio, state, player, interaction, game, isTouch, goTo, updaters, addUpdater, waitUntil, wait, whenStarted, useHandler: null };
 
     input.onLook = (dx, dy) => player.look(dx, dy);
-    input.onUse = () => interaction.use();
+    input.onUse = () => { if (ui.advance()) return; if (ctx.useHandler) { ctx.useHandler(); return; } interaction.use(); };
     input.onFlashlight = null;   // lo asigna la mecánica de linterna (Fase 2)
     input.showFlashlightButton(false);
 
@@ -79,6 +93,7 @@ async function goTo(id) {
     state.setAct(id);
     await mod.load(ctx);
     syncBlocked();
+    if (game.started) ui.fade(0, 700);
   } catch (err) {
     console.error('Error al cargar la escena ' + id, err);
     ui.toast('No se pudo cargar la escena: ' + id, 5000);
@@ -86,6 +101,15 @@ async function goTo(id) {
     loading = false;
   }
 }
+
+/* ---------- Diario (tecla J o botón) ---------- */
+function toggleJournal() {
+  if (ui.modalOpen && ui.modalKind === 'journal') { ui.closeModal(); return; }
+  if (!game.started || ui.modalOpen || ui.isDebugOpen()) return;
+  ui.openJournal(state.state.journal);
+}
+input.onJournal = toggleJournal;
+document.getElementById('journalBtn').addEventListener('click', toggleJournal);
 
 /* ---------- Menú de depuración (tecla P o triple toque en el cuadro de bolsillos) ---------- */
 function toggleDebug() {
@@ -96,7 +120,7 @@ function toggleDebug() {
 input.onDebug = toggleDebug;
 input.onEscape = () => {
   if (ui.isDebugOpen()) { ui.closeDebug(); syncBlocked(); }
-  else if (ui.modalOpen && !document.getElementById('end').classList.contains('show')) { ui.closeModal(); }
+  else if (ui.modalOpen && !ui.modalLocked && !document.getElementById('end').classList.contains('show')) { ui.closeModal(); }
 };
 
 /* ---------- Bucle principal ---------- */
@@ -129,6 +153,7 @@ engine.runRenderLoop(() => {
       game.startTime = performance.now();
       if (isTouch) input.showTouchControls(true); else input.requestLock();
       syncBlocked();
+      startWaiters.splice(0).forEach((fn) => fn());
     }
   });
 })();

@@ -2,7 +2,9 @@
 
 Escape room en primera persona para navegador, hecho con Babylon.js. Una sorpresa basada en el vídeo corto "El sepulturero".
 
-Estado: **Fase 2 completada** (mecánicas base). El prototipo original funciona como una escena más (`prototype`), hay una escena de pruebas de mecánicas (`test_mechanics`) y los actos 1-7 son marcadores a la espera de las siguientes fases.
+Estado: **Fase 3 completada** (prólogo, Acto 1 y Acto 2). El prototipo original sigue como escena `prototype`, hay una escena de pruebas (`test_mechanics`) y los actos 3-7 y el epílogo son marcadores a la espera de las siguientes fases.
+
+Para jugar la historia desde el principio abre `?escena=prologue` (o elige el prólogo en el menú `P`). Al terminar cada acto pasa solo al siguiente.
 
 ## Cómo probarlo
 
@@ -20,7 +22,8 @@ Para abrir una escena concreta: `?escena=act3_brokenDreams` al final de la URL.
 | Moverse | WASD o flechas | Joystick izquierdo |
 | Mirar | Ratón | Arrastrar con el dedo a la derecha |
 | Hablar / tocar | Clic o `E` | Botón **Usar** |
-| Linterna (Fase 2) | `F` | Botón **Linterna** |
+| Linterna (desde que coges el farol) | `F` | Botón **Linterna** |
+| Diario | `J` | Botón **Diario** (arriba a la izquierda) |
 | Menú de depuración | `P` | Tres toques sobre el cuadro de bolsillos |
 
 ## Estructura
@@ -40,10 +43,43 @@ js/core/
   ui.js                  pistas, diálogos, subtítulos, inventario, candado, pantallas
   audio.js               efectos sintéticos, música y sonido espacial (ganchos)
 js/mechanics/            flashlight.js, thread.js, followDream.js (hechas); dreamFragment.js (esqueleto, Fase 4)
-js/scenes/               una escena por acto + prototype (el cementerio original)
+js/scenes/               prologue, act1_simple, act2_smallGrave (hechas); act3-act7 y epilogue (marcadores);
+                         prototype (el cementerio original), test_mechanics y _kit.js (piezas compartidas)
 assets/models/           child.glb, trees.glb, rocks.glb, landscape.glb
 assets/audio/            música y efectos (vacío por ahora)
 ```
+
+
+## Guion y textos
+
+Todos los textos de la historia (voz en off, diálogos, pistas, avisos y entradas del diario) están en `js/config.js`, dentro de `CONFIG.story`. Se pueden cambiar sin tocar el código. Los diálogos son listas de `{ name, text }`; la voz en off es una lista de frases sueltas.
+
+## Lo que hay en la Fase 3
+
+- **Prólogo:** cuarto del niño con voz en off subtitulada, tutorial de movimiento, mirada e interacción, juguete opcional (bandera `juguete`, que usará el epílogo) y camino por el pueblo hasta la puerta del cementerio.
+- **Acto 1, "Lo sencillo":** casa del sepulturero. Puzle 1, la cena sencilla (6 alimentos, 3 correctos; los demás se devuelven con una frase amable). Puzle 2, las herramientas (pala, farol y llaves, con una pista oral cada una); el farol activa la linterna.
+- **Acto 2, "La tumba pequeña":** puzle 3, cavar con respeto (anillo de ritmo; ir demasiado rápido solo reinicia el compás y el sepulturero te frena con calma; saltarse un compás tampoco castiga). Después, tres preguntas al sepulturero, cada una con su entrada en el diario, y el momento emotivo con música suave.
+
+Los parámetros del ritmo están en `RHYTHM` (`act2_smallGrave.js`): `period` (segundos por compás), `window` (margen para acertar) y `beats` (compases necesarios).
+
+## Utilidades para los actos (contexto `ctx`)
+
+```js
+await ctx.whenStarted();                  // espera a que el jugador pulse "Entrar"
+await ctx.wait(1.5);                      // pausa en segundos de juego
+await ctx.waitUntil(() => cond());        // espera a que se cumpla una condición
+await ctx.ui.dialogue([{ name, text }]);  // diálogo con avance (E, clic o Usar)
+await ctx.ui.narrateAll(['frase', ...]);  // voz en off subtitulada
+const id = await ctx.ui.choose({ name, text, options: [{ id, label, disabled }] });
+ctx.ui.rhythm.show(texto) / .update(fase, progreso) / .flash('ok') / .hide();
+ctx.useHandler = fn;                      // captura "Usar" (minijuegos); ponlo a null al terminar
+ctx.player.moveLocked = true;             // se puede mirar pero no andar
+ctx.state.addJournal({ id, title, text }) // entrada en el diario
+ctx.audio.startPad('noche' | 'suave');    // música ambiente generada (sin ficheros); stopPad() la apaga
+ctx.goTo('act3_brokenDreams');            // cambia de escena con fundido
+```
+
+`js/scenes/_kit.js` reúne las piezas compartidas: materiales en grises, cielo con luna, muros, farolillos, lápidas, verja, el sepulturero de cuerpo entero (`buildGravedigger`, con `holdHat()` y `update()`) y los árboles y rocas del modelo.
 
 ## Cómo funciona una escena
 
@@ -137,7 +173,7 @@ Los `.glb` se cargan con `loadModel(scene, 'fichero.glb')` desde `assets/models/
 
 1. Fase 1: refactor y estructura (hecha)
 2. Fase 2: mecánicas base (linterna, hilo, seguir el sueño) con una escena de pruebas (hecha)
-3. Fase 3: prólogo, acto 1 y acto 2
+3. Fase 3: prólogo, acto 1 y acto 2 (hecha)
 4. Fase 4: actos 3 y 4
 5. Fase 5: actos 5, 6 y 7 y epílogo
 6. Fase 6: extras, audio y pulido
