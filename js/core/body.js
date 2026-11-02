@@ -57,14 +57,17 @@ function swing(b, axisWorld, ang) {
   b.n.rotationQuaternion = B.Quaternion.RotationAxis(axis, ang * SIGN).multiply(b.base);
 }
 
+const STAND = { thigh: -1.45, shin: 1.45, arm: -0.7, fore: -0.5 };   // radianes que enderezan las piernas desde la postura sentada
+
 function animate(rig, node, phase, amp) {
   const axis = B.Vector3.TransformNormal(new B.Vector3(1, 0, 0), node.getWorldMatrix()).normalize();
   const s = Math.sin(phase), c = Math.cos(phase);
-  swing(rig.thighL, axis, s * 0.55 * amp); swing(rig.thighR, axis, -s * 0.55 * amp);
+  // El modelo viene en postura sentada (muslos hacia delante, rodillas dobladas): se endereza siempre antes de animar.
+  swing(rig.thighL, axis, STAND.thigh + s * 0.55 * amp); swing(rig.thighR, axis, STAND.thigh - s * 0.55 * amp);
   // la rodilla se dobla cuando la pierna pasa hacia delante
-  swing(rig.shinL, axis, -Math.max(0, c) * 0.7 * amp); swing(rig.shinR, axis, -Math.max(0, -c) * 0.7 * amp);
-  swing(rig.armL, axis, -s * 0.45 * amp); swing(rig.armR, axis, s * 0.45 * amp);
-  swing(rig.foreL, axis, 0.25 * amp * Math.max(0, s)); swing(rig.foreR, axis, 0.25 * amp * Math.max(0, -s));
+  swing(rig.shinL, axis, STAND.shin - Math.max(0, c) * 0.7 * amp); swing(rig.shinR, axis, STAND.shin - Math.max(0, -c) * 0.7 * amp);
+  swing(rig.armL, axis, STAND.arm - s * 0.45 * amp); swing(rig.armR, axis, STAND.arm + s * 0.45 * amp);
+  swing(rig.foreL, axis, STAND.fore + 0.25 * amp * Math.max(0, s)); swing(rig.foreR, axis, STAND.fore + 0.25 * amp * Math.max(0, -s));
 }
 
 // Pega el cuerpo al jugador: va justo detrás de la cámara y gira con ella. La cabeza se oculta para no tapar la vista.
