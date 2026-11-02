@@ -68,6 +68,26 @@ export async function load(ctx) {
   const lamp = new B.PointLight('roomLamp', new V3(0, 2.2, -1.3), scene);
   lamp.intensity = 0.55; lamp.range = 7; lamp.diffuse = new B.Color3(0.95, 0.93, 0.9);
 
+  // Espejo: aquí se ve el cuerpo del niño (en primera persona la cabeza está oculta salvo en el reflejo)
+  const MX = -2.49;
+  const glass = MB.CreatePlane('mirror', { width: 0.9, height: 1.7 }, scene);
+  glass.position.set(MX, 1.15, -0.3); glass.rotation.y = -Math.PI / 2;
+  const mirrorTex = new B.MirrorTexture('mirrorTex', isTouch ? 256 : 512, scene, true);
+  mirrorTex.mirrorPlane = new B.Plane(-1, 0, 0, MX);
+  mirrorTex.level = 0.85;
+  const mirrorMat = new B.StandardMaterial('mirrorMat', scene);
+  mirrorMat.diffuseColor = new B.Color3(0, 0, 0); mirrorMat.specularColor = new B.Color3(0, 0, 0);
+  mirrorMat.reflectionTexture = mirrorTex; glass.material = mirrorMat;
+  const frame = [box(0.06, 0.06, 1.02, MX + 0.01, 2.02, -0.3, M.woodDark), box(0.06, 0.06, 1.02, MX + 0.01, 0.28, -0.3, M.woodDark),
+    box(0.06, 1.82, 0.06, MX + 0.01, 1.15, -0.78, M.woodDark), box(0.06, 1.82, 0.06, MX + 0.01, 1.15, 0.18, M.woodDark)];
+  interaction.add([glass, ...frame], { text: T.mirror });
+  ctx.bodyReady.then((body) => {
+    mirrorTex.renderList = scene.meshes.filter((m) => m !== glass);
+    if (!body) return;
+    mirrorTex.onBeforeRenderObservable.add(() => body.setHeadVisible(true));
+    mirrorTex.onAfterRenderObservable.add(() => body.setHeadVisible(false));
+  });
+
   // Taburete con el juguete
   const stool = [cyl(0.4, 0.4, 0.05, -0.5, 0.42, -3.4, M.wood, null, 14), cyl(0.06, 0.06, 0.4, -0.5, 0.2, -3.4, M.wood, null, 8)];
   interaction.add(stool, { text: 'Un taburete pequeño.' });

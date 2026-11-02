@@ -7,6 +7,7 @@ import { createInteraction } from './core/interaction.js';
 import { createUI } from './core/ui.js';
 import * as audio from './core/audio.js';
 import * as state from './core/state.js';
+import { attachBody } from './core/body.js';
 
 import * as prototype from './scenes/prototype.js';
 import * as prologue from './scenes/prologue.js';
@@ -96,6 +97,8 @@ async function goTo(id) {
 
     current = mod;
     state.setAct(id);
+    if (new URLSearchParams(location.search).has('debug')) window.__ctx = ctx;
+    ctx.bodyReady = mod.body === false ? Promise.resolve(null) : attachBody(ctx).catch((err) => { console.error('No se pudo cargar el cuerpo del niño', err); return null; });
     await mod.load(ctx);
     syncBlocked();
     if (game.started) { audio.startAmbient(mod.ambient); ui.fade(0, 700); }

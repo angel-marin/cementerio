@@ -7,12 +7,14 @@ import { sfx } from '../core/audio.js';
 import { CONFIG } from '../config.js';
 import * as K from './_kit.js';
 import { buildPiece, DREAMS } from '../mechanics/dreamFragment.js';
+import { loadChild, BODY_YAW } from '../core/body.js';
 
 const B = window.BABYLON;
 const T = CONFIG.story.epilogue;
 
 export const id = 'epilogue';
 export const title = 'Epílogo: Cumplió su palabra';
+export const body = false;      // aquí se controla al niño ya mayor: sin el cuerpo del niño
 export const ambient = 'alba';   // sonido de fondo (viento, interior, cripta, alba)
 export const sceneOptions = { moon: true, shadows: true, hemiIntensity: 0.55, fogDensity: 0.02, fogColor: [0.52, 0.52, 0.54], clear: [0.5, 0.5, 0.52] };
 
@@ -102,10 +104,32 @@ export async function load(ctx) {
     if (!S.credits && player.position.z > 6.3 && Math.abs(player.position.x - gx) < 1.5) credits();
   });
 
-  function credits() {
+  // Cinemática final: la cámara se separa y se ve, por fin, al niño (ya mayor) cruzando la verja.
+  async function walkOut() {
+    const kid = await loadChild(ctx, { scale: 1.3 }).catch((err) => { console.error('No se pudo cargar el niño', err); return null; });
+    if (!kid) return;
+    const p0 = player.position.clone();
+    player.frozen = true;
+    kid.node.position.set(p0.x, 0, p0.z); kid.node.rotation.y = BODY_YAW;
+    const SECONDS = 5;
+    let t = 0;
+    await new Promise((res) => {
+      const off = ctx.addUpdater((dt) => {
+        t += dt;
+        const k = Math.min(1, t / SECONDS), e = k * k * (3 - 2 * k);
+        kid.node.position.z = p0.z + e * 3.2;
+        camera.position.set(p0.x, p0.y + e * 0.9, p0.z - e * 3.6);
+        player.yaw = 0; player.pitch = 0.05 + e * 0.12;
+        if (k >= 1) { off(); res(); }
+      });
+    });
+  }
+
+  async function credits() {
     if (S.credits) return;
     S.credits = true;
     game.solvePuzzle('epilogo');
+    await walkOut();
     const lines = [...T.credits.lines];
     if (CONFIG.neighbor.name) lines.unshift(T.credits.forName(CONFIG.neighbor.name));
     // Final secreto: con los 18 sueños escondidos, un mensaje dedicado (editable en config.js)

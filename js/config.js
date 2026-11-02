@@ -91,6 +91,7 @@ export const CONFIG = {
       desk: 'Tu escritorio. Los deberes de mañana siguen sin hacer.',
       bed: 'Tu cama. Esta noche no la vas a usar.',
       wardrobe: 'El armario está cerrado. Dentro solo hay ropa de invierno.',
+      mirror: 'Tu reflejo te devuelve la mirada. Parece más pequeño de lo que te sientes.',
       fatherAtDoor: { name: 'Padre', text: 'Ve con cuidado y haz caso al sepulturero.' },
       streetMid: [
         'El sepulturero tenía fama de ser un personaje hosco y solitario.',
